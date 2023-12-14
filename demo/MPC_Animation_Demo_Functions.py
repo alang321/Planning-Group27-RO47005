@@ -32,39 +32,36 @@ class vehicle_SS:
         return x_next
     
 
-def simulate(dt, T, x_init, plan_length, control_func, num_states = 4, num_inputs = 2):
-    # Initialise the output arrays
-    x_real = np.zeros((num_states, T+1))
-    x_all = np.zeros((num_states, plan_length+1, T+1))
-    u_real = np.zeros((num_inputs, T))
+# def simulate(dt, T, x_init, plan_length, control_func, num_states = 4, num_inputs = 2):
+#     # Initialise the output arrays
+#     x_real = np.zeros((num_states, T+1))
+#     x_all = np.zeros((num_states, plan_length+1, T+1))
+#     u_real = np.zeros((num_inputs, T))
 
-    # Set time vector and initial state
-    timesteps = np.linspace(0, dt, T)
-    x_real[:, 0] = x_init
+#     # Set time vector and initial state
+#     timesteps = np.arange(0, T, dt)
+#     print(f"Timesteps: {len(timesteps)}")
+#     x_real[:, 0] = x_init
 
-    for t in range(0, T):
+#     for t in timesteps:
 
-        # Compute the control input (and apply it)
-        u_out, x_out, x_all_out = control_func(x_real[:, t]) 
+#         # Compute the control input (and apply it)
+#         u_out, x_out, x_all_out = control_func(x_real[:, t]) 
 
-        # Next x is the x in the second state
-        x_real[:, t+1] = x_out
-        x_all[:, :, t] = x_all_out # Save the plan (for visualization)
+#         # Next x is the x in the second state
+#         x_real[:, t+1] = x_out
+#         x_all[:, :, t] = x_all_out # Save the plan (for visualization)
 
-        # Used input is the first input
-        u_real[:, t] = u_out
+#         # Used input is the first input
+#         u_real[:, t] = u_out
 
-    return x_real, u_real, x_all, timesteps
+#     return x_real, u_real, x_all, timesteps
 
-def plot_trajectories(x_real, obstacles):
-    pos_x = x_real[0, :]
-    pos_y = x_real[1, :]
-
+def plot_obstacles(obstacles):
     for idx, obstacle in enumerate(obstacles):
         circle = plt.Circle((obstacle[0], obstacle[1]), obstacle[2], color='red', fill=False, label= f'Obstacle {idx}')
         plt.gca().add_patch(circle)
     
-    plt.scatter(pos_x, pos_y, color = "g", label = "Vehicle Path")
     plt.title('Trajectory with Obstacle')
     plt.xlabel('X-axis')
     plt.ylabel('Y-axis')
