@@ -74,7 +74,7 @@ def plot_obstacles(obstacles):
     plt.show()
 
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [],  num_states=4, num_inputs=2):
+def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=4, num_inputs=2):
     # Create an optimization problem
     opti = ca.Opti()
 
@@ -100,6 +100,9 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         
         for obstacle in obstacles:
             constraints += [ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) ) >= obstacle[2]]
+
+        for obstacle in move_obstacles:
+            constraints += [ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) ) > obstacle[2]]
 
         # Dynamics Constraint
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
