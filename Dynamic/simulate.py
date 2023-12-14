@@ -19,14 +19,17 @@ def simulate(dt, T, x_init, plan_length, control_func, move_obstacles, num_state
     x_real = np.zeros((num_states, len(timesteps)+1))
     x_all = np.zeros((num_states, plan_length+1, len(timesteps)+1))
     u_real = np.zeros((num_inputs, len(timesteps)))
+
+    initial_guess_x = None
     
     x_real[:, 0] = x_init
     for t in range(len(timesteps)):
         
-
         # Compute the control input (and apply it)
         move_obstacles_update = MovingObstacleConvert(move_obstacles, t, dt)
-        u_out, x_out, x_all_out = control_func(x_real[:, t], move_obstacles_update)
+        u_out, x_out, x_all_out = control_func(x_real[:, t], move_obstacles_update, initial_guess_x)
+
+        initial_guess_x = x_all_out
 
         # Next x is the x in the second state
         x_real[:, t+1] = x_out

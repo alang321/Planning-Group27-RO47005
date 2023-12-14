@@ -1,7 +1,7 @@
 import numpy as np
 import casadi as ca
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=4, num_inputs=2):
+def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles, move_obstacles, initial_guess_x, num_states=4, num_inputs=2):
     # Create an optimization problem
     opti = ca.Opti()
 
@@ -28,12 +28,12 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         for obstacle in obstacles:
             euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
             constraints += [euclid_distance >= obstacle[2]]
-            # cost += 100/((euclid_distance-obstacle[2])**2 + 0.01)
+            # cost += 1000/((euclid_distance-obstacle[2])**2 + 0.01)
             
         for obstacle in move_obstacles:
             euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
             constraints += [euclid_distance > obstacle[2]]
-            cost += 5000/((euclid_distance-obstacle[2])**2 + 0.01)
+            cost += 100/((euclid_distance-obstacle[2])**2 + 0.01)
 
         # Dynamics Constraint
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
@@ -49,6 +49,10 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     e_N = x_target - x[:, -1]
     cost += ca.mtimes(e_N.T, Q @ e_N)
     
+    # Warm start initialization if initial guesses are provided
+    # print(f"        Initial Guess: {initial_guess_x}")
+    if initial_guess_x is not None:
+        opti.set_initial(x, initial_guess_x)
     
     # Define Problem in solver
     opti.minimize(cost)
