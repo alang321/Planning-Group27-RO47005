@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import casadi as ca
-from queue import PriorityQueue
+import operator
+from ipywidgets import IntProgress
+from IPython.display import display
 
 class vehicle_SS:
     def __init__(self, dt):
@@ -78,21 +80,15 @@ def plot_trajectories(x_real, obstacles):
     plt.show()
 
 
-def a_star(occupany_grid, start, goal):
-    #.get() returns the item with the lowest value
-    #.put() adds an item to the queue
-    #.empty() returns True if the queue is empty
-    #.qsize() returns the number of items in the queue
-
+def a_star(occupany_grid, start, goal, report_progress=True):
     def heuristic(node1, node2):
         return (node1.index[0] - node2.index[0]) ** 2 + (node1.index[1] - node2.index[1]) ** 2
 
     grid_map = occupany_grid.grid_map
 
-    #priority queue
-    open_queue = PriorityQueue()
+    #lists for open and closed nodes
+    open_nodes = []
     closed_nodes = []
-    visited_nodes = []
 
     # Initialize start and goal node
     start_idx = occupany_grid.get_closest_grid_index(start)
@@ -100,61 +96,69 @@ def a_star(occupany_grid, start, goal):
     start_node = Node(None, start_idx)
     goal_node = Node(None, goal_idx)
 
-    open_queue.put(start_node)
+    open_nodes.append(start_node)
 
+    nodes_visited = 0
+    if report_progress:
+        total_nodes = occupany_grid.num_free_cells
+        percent = 0
+        f = IntProgress(min=0, max=total_nodes)  # instantiate the bar
+        display(f)  # display the bar
     # Loop until goal is found
-    while not open_queue.empty():
-        # Get current node
-        current_node = open_queue.get()
-        closed_nodes.append(current_node)
+    while len(open_nodes) > 0:
+        if(report_progress):
+            f.value = nodes_visited
+
+        # Get the cheapest open node measured by f value, f value is defined in the node class operator overloading
+        min_idx, cheapest_open_node = min(enumerate(open_nodes), key=operator.itemgetter(1))
+
+        # Move from open to closed list
+        closed_nodes.append(open_nodes.pop(min_idx))
 
         # Check if goal is found
-        if current_node == goal_node:
+        if cheapest_open_node == goal_node:
             print("Goal found")
             #reconstruct the path
             path = []
-            current = current_node
+            current = cheapest_open_node
             while current is not None:
                 path.append(current.index)
                 current = current.parent
             return path[::-1]
 
         # Generate children
-        for neighbor_idx, cost in occupany_grid.get_adjacent_indices_and_cost(*current_node.index):
+        for neighbor_idx, cost in occupany_grid.get_adjacent_indices_and_cost(*cheapest_open_node.index):
             # Check if node is not colliding
             if not occupany_grid.is_occupied_index(*neighbor_idx):
                 # Create neighbor node
-                neighbor_node = Node(current_node, neighbor_idx)
+                neighbor_node = Node(cheapest_open_node, neighbor_idx)
 
                 # Check if neighbor is in closed list
                 if not neighbor_node in closed_nodes:
                     # Calculate f, g, and h values
-                    neighbor_node.g = current_node.g + cost
-                    neighbor_node.h = heuristic(neighbor_node, current_node)
+                    neighbor_node.g = cheapest_open_node.g + cost
+                    neighbor_node.h = heuristic(neighbor_node, cheapest_open_node)
                     neighbor_node.f = neighbor_node.g + neighbor_node.h
 
-                    index = None
-                    for idx, node in enumerate(visited_nodes):
-                        if node.index == neighbor_node.index:
-                            index = idx
-                            break
+                    #check if neighbor is in open list
+                    #if not a value error is thrown
+                    try:
+                        index = open_nodes.index(neighbor_node)
+                        if open_nodes[index].g > neighbor_node.g:
+                            # if its cheaper to get to the current neighbor with the current path
+                            # update the open node
+                            open_nodes[index] = neighbor_node
 
-                    if index:
-                        if node.g <= neighbor_node.g:
-                            continue
-                        else:
-                            visited_nodes[idx] = neighbor_node
-                            open_queue.put(neighbor_node)
-                            continue
-
-                    # Append neighbor to open list
-                    visited_nodes.append(neighbor_node)
-                    open_queue.put(neighbor_node)
+                    except ValueError:
+                        # if the neighbor is not in the open list add it
+                        open_nodes.append(neighbor_node)
+                        nodes_visited += 1
+                        pass
     return None
 
 
 
-def plot_path(path, obstacles, occupany_grid):
+def plot_path(path, obstacles, occupany_grid, start, goal):
     path = np.array(path)
 
     #convert indeces to points
@@ -166,13 +170,18 @@ def plot_path(path, obstacles, occupany_grid):
     pos_y = path_points[:, 1]
 
     for idx, obstacle in enumerate(obstacles):
-        circle = plt.Circle((obstacle[0], obstacle[1]), obstacle[2], color='red', fill=False, label= f'Obstacle {idx}')
+        circle = plt.Circle((obstacle[0], obstacle[1]), obstacle[2], color='blue', fill=False)
         plt.gca().add_patch(circle)
 
     plt.plot(pos_x, pos_y, color = "r", label = "Vehicle Path")
     plt.title('Path with Obstacle')
     plt.xlabel('X-axis')
     plt.ylabel('Y-axis')
+
+    #mark start and goal
+    plt.scatter(start[0], start[1], color = "g", label = "Start")
+    plt.scatter(goal[0], goal[1], color = "pink", label = "Goal")
+    plt.legend()
 
     # Set axis limits for x and y
     plt.xlim(0, 50)
@@ -244,11 +253,12 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
 
 
 class OccupancyGrid:
-    def __init__(self, grid_resolution, origin, obstacles, field_size):
+    def __init__(self, grid_resolution, origin, obstacles, field_size, obstacle_margin=0):
         self.grid_resolution = grid_resolution
         self.origin = origin
         self.obstacles = obstacles
         self.field_size = field_size
+        self.obstacle_margin = obstacle_margin
 
         self.x_points = np.arange(self.origin[0], self.field_size[0], self.grid_resolution)
         self.y_points = np.arange(self.origin[1], self.field_size[1], self.grid_resolution)
@@ -257,7 +267,9 @@ class OccupancyGrid:
         self.diag_cost = (2 ** 0.5) * self.grid_resolution
         self.straight_cost = self.grid_resolution
 
+        self.num_free_cells = 0
         self.grid_map = self.generate_grid_map()
+
 
     def get_closest_grid_index(self, point):
         x_points = np.arange(self.origin[0], self.field_size[0], self.grid_resolution)
@@ -279,12 +291,14 @@ class OccupancyGrid:
             for j, y in enumerate(self.y_points):
                 if self.is_colliding([x,y], self.grid_resolution / 2):
                     grid_map[i, j] = 1
+                else:
+                    self.num_free_cells += 1
         return grid_map
 
     def is_colliding(self, point, radius):
         for obstacle in self.obstacles:
             squared_dist = (point[0] - obstacle[0]) ** 2 + (point[1] - obstacle[1]) ** 2
-            if squared_dist <= (obstacle[2] + radius) ** 2:
+            if squared_dist <= (obstacle[2] + radius + self.obstacle_margin) ** 2:
                 return True
         return False
 
@@ -313,10 +327,11 @@ class OccupancyGrid:
         return self.grid_map[index_x, index_y] == 1
 
     def plot(self):
-        plt.imshow(self.grid_map, cmap='Greys', origin='lower')
+        #flip the axes to match the grid
+        plt.imshow(self.grid_map.T, cmap='Greys', origin='lower')
         plt.xlabel('X-axis')
         plt.ylabel('Y-axis')
-        plt.title('Grid Map')
+        plt.title('Occupancy Grid')
         plt.show()
 
 
