@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import casadi as ca
+from queue import PriorityQueue
 
 class vehicle_SS:
     def __init__(self, dt):
@@ -77,6 +78,109 @@ def plot_trajectories(x_real, obstacles):
     plt.show()
 
 
+def a_star(occupany_grid, start, goal):
+    #.get() returns the item with the lowest value
+    #.put() adds an item to the queue
+    #.empty() returns True if the queue is empty
+    #.qsize() returns the number of items in the queue
+
+    def heuristic(node1, node2):
+        return (node1.index[0] - node2.index[0]) ** 2 + (node1.index[1] - node2.index[1]) ** 2
+
+    grid_map = occupany_grid.grid_map
+
+    #priority queue
+    open_queue = PriorityQueue()
+    closed_nodes = []
+    visited_nodes = []
+
+    # Initialize start and goal node
+    start_idx = occupany_grid.get_closest_grid_index(start)
+    goal_idx = occupany_grid.get_closest_grid_index(goal)
+    start_node = Node(None, start_idx)
+    goal_node = Node(None, goal_idx)
+
+    open_queue.put(start_node)
+
+    # Loop until goal is found
+    while not open_queue.empty():
+        # Get current node
+        current_node = open_queue.get()
+        closed_nodes.append(current_node)
+
+        # Check if goal is found
+        if current_node == goal_node:
+            print("Goal found")
+            #reconstruct the path
+            path = []
+            current = current_node
+            while current is not None:
+                path.append(current.index)
+                current = current.parent
+            return path[::-1]
+
+        # Generate children
+        for neighbor_idx, cost in occupany_grid.get_adjacent_indices_and_cost(*current_node.index):
+            # Check if node is not colliding
+            if not occupany_grid.is_occupied_index(*neighbor_idx):
+                # Create neighbor node
+                neighbor_node = Node(current_node, neighbor_idx)
+
+                # Check if neighbor is in closed list
+                if not neighbor_node in closed_nodes:
+                    # Calculate f, g, and h values
+                    neighbor_node.g = current_node.g + cost
+                    neighbor_node.h = heuristic(neighbor_node, current_node)
+                    neighbor_node.f = neighbor_node.g + neighbor_node.h
+
+                    index = None
+                    for idx, node in enumerate(visited_nodes):
+                        if node.index == neighbor_node.index:
+                            index = idx
+                            break
+
+                    if index:
+                        if node.g <= neighbor_node.g:
+                            continue
+                        else:
+                            visited_nodes[idx] = neighbor_node
+                            open_queue.put(neighbor_node)
+                            continue
+
+                    # Append neighbor to open list
+                    visited_nodes.append(neighbor_node)
+                    open_queue.put(neighbor_node)
+    return None
+
+
+
+def plot_path(path, obstacles, occupany_grid):
+    path = np.array(path)
+
+    #convert indeces to points
+    path_points = []
+    for index in path:
+        path_points.append(occupany_grid.index_to_point(*index))
+    path_points = np.array(path_points)
+    pos_x = path_points[:, 0]
+    pos_y = path_points[:, 1]
+
+    for idx, obstacle in enumerate(obstacles):
+        circle = plt.Circle((obstacle[0], obstacle[1]), obstacle[2], color='red', fill=False, label= f'Obstacle {idx}')
+        plt.gca().add_patch(circle)
+
+    plt.plot(pos_x, pos_y, color = "r", label = "Vehicle Path")
+    plt.title('Path with Obstacle')
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+
+    # Set axis limits for x and y
+    plt.xlim(0, 50)
+    plt.ylim(0, 50)
+    plt.axis('equal')
+    plt.grid()
+    plt.show()
+
 def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [],  num_states=4, num_inputs=2):
     # Create an optimization problem
     opti = ca.Opti()
@@ -138,3 +242,110 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
 
     return optimal_solution_u[:, 0], optimal_solution_x[:, 1], optimal_solution_x
 
+
+class OccupancyGrid:
+    def __init__(self, grid_resolution, origin, obstacles, field_size):
+        self.grid_resolution = grid_resolution
+        self.origin = origin
+        self.obstacles = obstacles
+        self.field_size = field_size
+
+        self.x_points = np.arange(self.origin[0], self.field_size[0], self.grid_resolution)
+        self.y_points = np.arange(self.origin[1], self.field_size[1], self.grid_resolution)
+
+
+        self.diag_cost = (2 ** 0.5) * self.grid_resolution
+        self.straight_cost = self.grid_resolution
+
+        self.grid_map = self.generate_grid_map()
+
+    def get_closest_grid_index(self, point):
+        x_points = np.arange(self.origin[0], self.field_size[0], self.grid_resolution)
+        y_points = np.arange(self.origin[1], self.field_size[1], self.grid_resolution)
+        x_index = np.argmin(np.abs(x_points - point[0]))
+        y_index = np.argmin(np.abs(y_points - point[1]))
+        return x_index, y_index
+
+    def index_to_point(self, index_x, index_y):
+        x = self.x_points[index_x]
+        y = self.y_points[index_y]
+        return [x, y]
+
+    def generate_grid_map(self):
+        x_dim = self.x_points.size
+        y_dim = self.y_points.size
+        grid_map = np.zeros((x_dim, y_dim))
+        for i, x in enumerate(self.x_points):
+            for j, y in enumerate(self.y_points):
+                if self.is_colliding([x,y], self.grid_resolution / 2):
+                    grid_map[i, j] = 1
+        return grid_map
+
+    def is_colliding(self, point, radius):
+        for obstacle in self.obstacles:
+            squared_dist = (point[0] - obstacle[0]) ** 2 + (point[1] - obstacle[1]) ** 2
+            if squared_dist <= (obstacle[2] + radius) ** 2:
+                return True
+        return False
+
+    def get_adjacent_indices_and_cost(self, index_x, index_y):
+        adjacent_indices = []
+        costs = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == j == 0:
+                    continue
+                new_index_x = index_x + i
+                new_index_y = index_y + j
+                if self.is_valid_index(new_index_x, new_index_y):
+                    #check if diagonal or straight
+                    if i == 0 or j == 0:
+                        cost = self.straight_cost
+                    else:
+                        cost = self.diag_cost
+                    adjacent_indices.append(((new_index_x, new_index_y), cost))
+        return adjacent_indices
+
+    def is_valid_index(self, index_x, index_y):
+        return index_x >= 0 and index_x < len(self.grid_map[0]) and index_y >= 0 and index_y < len(self.grid_map[1])
+
+    def is_occupied_index(self, index_x, index_y):
+        return self.grid_map[index_x, index_y] == 1
+
+    def plot(self):
+        plt.imshow(self.grid_map, cmap='Greys', origin='lower')
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+        plt.title('Grid Map')
+        plt.show()
+
+
+class Node:
+    def __init__(self, parent, index):
+        self.parent = parent
+        self.index = index
+
+        self.g = 0 # Distance to start node
+        self.h = 0 # Distance to goal node
+        self.f = 0 # Total cost, distance to start + norm
+
+    def __eq__(self, other):
+        return self.index == other.index
+
+    def __ne__(self, other):
+        return self.index != other.index
+
+    def __lt__(self, other):
+        return self.f < other.f
+
+    def __le__(self, other):
+        return self.f <= other.f
+
+    def __gt__(self, other):
+        return self.f > other.f
+
+    def __ge__(self, other):
+        return self.f >= other.f
+
+    def __str__(self):
+        return f'Node: {self.index}, g: {self.g}'
