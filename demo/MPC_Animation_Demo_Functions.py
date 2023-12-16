@@ -127,33 +127,31 @@ def a_star(occupany_grid, start, goal, report_progress=True):
             return path[::-1]
 
         # Generate children
-        for neighbor_idx, cost in occupany_grid.get_adjacent_indices_and_cost(*cheapest_open_node.index):
-            # Check if node is not colliding
-            if not occupany_grid.is_occupied_index(*neighbor_idx):
-                # Create neighbor node
-                neighbor_node = Node(cheapest_open_node, neighbor_idx)
+        for neighbor_idx, cost in occupany_grid.get_adjacent_free_cells(*cheapest_open_node.index):
+            # Create neighbor node
+            neighbor_node = Node(cheapest_open_node, neighbor_idx)
 
-                # Check if neighbor is in closed list
-                if not neighbor_node in closed_nodes:
-                    # Calculate f, g, and h values
-                    neighbor_node.g = cheapest_open_node.g + cost
-                    neighbor_node.h = heuristic(neighbor_node, cheapest_open_node)
-                    neighbor_node.f = neighbor_node.g + neighbor_node.h
+            # Check if neighbor is in closed list
+            if not neighbor_node in closed_nodes:
+                # Calculate f, g, and h values
+                neighbor_node.g = cheapest_open_node.g + cost
+                neighbor_node.h = heuristic(neighbor_node, cheapest_open_node)
+                neighbor_node.f = neighbor_node.g + neighbor_node.h
 
-                    #check if neighbor is in open list
-                    #if not a value error is thrown
-                    try:
-                        index = open_nodes.index(neighbor_node)
-                        if open_nodes[index].g > neighbor_node.g:
-                            # if its cheaper to get to the current neighbor with the current path
-                            # update the open node
-                            open_nodes[index] = neighbor_node
+                #check if neighbor is in open list
+                #if not a value error is thrown
+                try:
+                    index = open_nodes.index(neighbor_node)
+                    if open_nodes[index].g > neighbor_node.g:
+                        # if its cheaper to get to the current neighbor with the current path
+                        # update the open node, otherwise discard it
+                        open_nodes[index] = neighbor_node
 
-                    except ValueError:
-                        # if the neighbor is not in the open list add it
-                        open_nodes.append(neighbor_node)
-                        nodes_visited += 1
-                        pass
+                except ValueError:
+                    # if the neighbor is not in the open list add it
+                    open_nodes.append(neighbor_node)
+                    nodes_visited += 1
+                    pass
     return None
 
 
@@ -302,7 +300,7 @@ class OccupancyGrid:
                 return True
         return False
 
-    def get_adjacent_indices_and_cost(self, index_x, index_y):
+    def get_adjacent_free_cells(self, index_x, index_y):
         adjacent_indices = []
         costs = []
         for i in range(-1, 2):
@@ -311,7 +309,7 @@ class OccupancyGrid:
                     continue
                 new_index_x = index_x + i
                 new_index_y = index_y + j
-                if self.is_valid_index(new_index_x, new_index_y):
+                if self.is_free_valid_cell(new_index_x, new_index_y):
                     #check if diagonal or straight
                     if i == 0 or j == 0:
                         cost = self.straight_cost
@@ -320,8 +318,8 @@ class OccupancyGrid:
                     adjacent_indices.append(((new_index_x, new_index_y), cost))
         return adjacent_indices
 
-    def is_valid_index(self, index_x, index_y):
-        return index_x >= 0 and index_x < len(self.grid_map[0]) and index_y >= 0 and index_y < len(self.grid_map[1])
+    def is_free_valid_cell(self, index_x, index_y):
+        return index_x >= 0 and index_x < len(self.grid_map[0]) and index_y >= 0 and index_y < len(self.grid_map[1]) and self.grid_map[index_x, index_y] != 1
 
     def is_occupied_index(self, index_x, index_y):
         return self.grid_map[index_x, index_y] == 1
