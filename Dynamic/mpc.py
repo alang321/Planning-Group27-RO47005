@@ -1,13 +1,15 @@
 import numpy as np
 import casadi as ca
+from quadrotor import Quadrotor
+import matplotlib.pyplot as plt
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=4, num_inputs=2):
+def mpc_control(quadrotor, N, x_init, x_target, num_states=4, num_inputs=2):
     # Create an optimization problem
     opti = ca.Opti()
 
     # State & Input matrix
-    Q = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
-    R = np.eye(2)
+    Q = np.eye(num_states)
+    R = np.eye(num_inputs)
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
@@ -19,24 +21,8 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
 
     #Loop through time steps
     for k in range(N):
-        # State Constraints
-        constraints += [x[:, k] >= [pos_constraints[0], pos_constraints[2], vel_constraints[0], vel_constraints[2]]]
-        constraints += [x[:, k] <= [pos_constraints[1], pos_constraints[3], vel_constraints[1], vel_constraints[3]]]
-        constraints += [u[:, k] >= [acc_constraints[0], acc_constraints[2]]]
-        constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3]]]
-        
-        for obstacle in obstacles:
-            euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
-            constraints += [euclid_distance >= obstacle[2]]
-            # cost += 100/((euclid_distance-obstacle[2])**2 + 0.01)
-            
-        for obstacle in move_obstacles:
-            euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
-            constraints += [euclid_distance > obstacle[2]]
-            cost += 5000/((euclid_distance-obstacle[2])**2 + 0.01)
-
         # Dynamics Constraint
-        constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
+        constraints += [x[:, k+1] == quadrotor.calculate_next_step(x[:, k], u[:, k])]
 
         # Cost function
         e_k = x_target - x[:, k]
@@ -48,8 +34,7 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     # Cost last state
     e_N = x_target - x[:, -1]
     cost += ca.mtimes(e_N.T, Q @ e_N)
-    
-    
+
     # Define Problem in solver
     opti.minimize(cost)
     opti.subject_to(constraints)
@@ -68,3 +53,32 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         print("Solver failed to find a solution.")
 
     return optimal_solution_u[:, 0], optimal_solution_x[:, 1], optimal_solution_x
+
+x_init = np.zeros(12)
+x_target = np.zeros(12)
+x_target[0:3] = [0, 0, 10]
+
+positions = mpc_control(Quadrotor(0.01), 500, x_init, x_target, 12, 4)[2][0:6, :]
+
+# Extract x, y, z coordinates
+x_positions = positions[0, :]
+y_positions = positions[1, :]
+z_positions = positions[2, :]
+x_rot = positions[3, :]
+y_rot = positions[4, :]
+z_rot = positions[5, :]
+
+# Plot the positions
+plt.figure(figsize=(10, 6))
+plt.plot(x_positions, label='X Position')
+plt.plot(y_positions, label='Y Position')
+plt.plot(z_positions, label='Z Position')
+plt.plot(x_rot, label='X rot')
+plt.plot(y_rot, label='Y rot')
+plt.plot(z_rot, label='Z rot')
+plt.xlabel('Time Step')
+plt.ylabel('Position (meters)')
+plt.title('Quadrotor Positions')
+plt.legend()
+plt.grid(True)
+plt.show()
