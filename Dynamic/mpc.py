@@ -65,7 +65,6 @@ def mpc_control(quadrotor, N, x_init, x_target, num_states=4, num_inputs=2):
         x_target[0:2] = ref(time, 3)
         e_k = x_target - x[:, k]
         e_k[3:6] = angle_difference(x_target[3:6], x[3:6, k])
-        
         cost += ca.mtimes(e_k.T, ca.mtimes(Q, e_k)) + ca.mtimes(u[:, k].T, ca.mtimes(R, u[:, k]))
 
     
@@ -90,12 +89,14 @@ def mpc_control(quadrotor, N, x_init, x_target, num_states=4, num_inputs=2):
 
     return optimal_solution_x, optimal_solution_u
 
+# Run simulation
 dt = 0.01
 x_init = np.zeros(12)
 x_target = np.zeros(12)
 x_target[0:3] = [0, 0, 0]
-
 results = mpc_control(Quadrotor(dt), 200, x_init, x_target, 12, 4)
+
+# Extract positions and control inputs
 positions = results[0][0:6, :]
 inputs = results[1]
 
@@ -121,7 +122,7 @@ def animate_trajectory():
         ax.set_zlim3d([origin[2] - radius, origin[2] + radius])
 
     size = 0.5
-    vertices = size * np.array([[-1, -1, -0.5], [1, -1, -0.5], [1, 1, -0.5], [-1, 1, -0.5], [-1, -1, 0.5], [1, -1, 0.5], [1, 1, 0.5], [-1, 1, 0.5]])
+    vertices = size * np.array([[-1, -1, -0.25], [1, -1, -0.25], [1, 1, -0.25], [-1, 1, -0.25], [-1, -1, 0.25], [1, -1, 0.25], [1, 1, 0.25], [-1, 1, 0.25]])
     faces = [[0, 1, 5, 4], [7, 6, 2, 3], [0, 1, 2, 3], [7, 6, 5, 4], [0, 3, 7, 4], [1, 2, 6, 5]]
     facecolors = ['cyan', 'cyan', 'red', 'cyan', 'cyan', 'cyan']
 
