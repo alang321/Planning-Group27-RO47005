@@ -47,26 +47,14 @@ def rrt_star(occupany_grid, start, goal, radius, max_iter=1000, report_progress=
         nearest_dist_sq = None
         dist_sq = [(node.index[0] - rnd_idx[0]) ** 2 + (node.index[1] - rnd_idx[1]) ** 2 for node in nodes]
 
-        print(rnd_idx)
-        print(dist_sq)
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
-        for i in nodes:
-            print(i.index)
-        print("end")
-        print(sorted_nodes[0][0].index, sorted_nodes[0][1])
         for node, dist in sorted_nodes:
             if not occupany_grid.is_line_intersecting_obstacle(*node.index, *rnd_idx):
                 nearest_node = node
                 nearest_dist_sq = dist
 
         if nearest_node is None:
-            print()
             continue
-
-
-        print(nearest_node.index)
-        print()
-
 
         new_node = Node(nearest_node, rnd_idx)
         new_node.g = nearest_dist_sq ** 0.5 + nearest_node.g
@@ -83,8 +71,8 @@ def rrt_star(occupany_grid, start, goal, radius, max_iter=1000, report_progress=
 
             dist = dist_sq ** 0.5
             if new_node.g + dist < node.g:
-                node.parent = new_node
-                node.g = new_node.g + dist
+                nodes[idx].parent = new_node
+                nodes[idx].g = new_node.g + dist
 
         nodes.append(new_node)
 
@@ -248,47 +236,51 @@ class OccupancyGrid:
                 return True
         return False
 
-    def is_line_intersecting_obstacle(self, x0, y0, x1, y1):
+    def is_line_intersecting_obstacle(self, x0, y0, x1, y1, plot=False):
         # Bresenham's line algorithm
-        #https://www.javatpoint.com/computer-graphics-bresenhams-line-algorithm
+        #https://jccraig.medium.com/we-must-draw-the-line-1820d49d19dd
+        x, y = x0, y0
         dx = abs(x1 - x0)
         dy = abs(y1 - y0)
+        dir_x = 1 if x0 < x1 else -1 if x0 > x1 else 0
+        dir_y = 1 if y0 < y1 else -1 if y0 > y1 else 0
+        incr_x = dy // 2
+        incr_y = dx // 2
+        iterations = dx + 1 if dx > dy else dy + 1
 
-        x, y = x0, y0
+        if plot:
+            plt.imshow(self.grid_map.T, cmap='Greys', origin='lower')
+            plt.xlabel('X-axis')
+            plt.ylabel('Y-axis')
+            intersection = False
 
-        if x0 < x1:
-            x_inc = 1
-        else:
-            x_inc = -1
-
-        if y0 < y1:
-            y_inc = 1
-        else:
-            y_inc = -1
-
-        p = 2 * dy - dx
-
-
-        plt.imshow(self.grid_map.T, cmap='Greys', origin='lower')
-        plt.xlabel('X-axis')
-        plt.ylabel('Y-axis')
-        plt.title('Occupancy Grid')
-
-        while x != x1:
-            plt.scatter(x, y, color = "r")
-            if self.is_occupied_index(x, y):
-                return True
-
-            if p >= 0:
-                y += y_inc
-                p += 2 * dy - 2 * dx
+        for i in range(iterations):
+            if plot:
+                plt.scatter(x, y, color = "r")
+                if self.is_occupied_index(x, y):
+                    intersection = True
             else:
-                p += 2 * dy
+                if self.is_occupied_index(x, y):
+                    return True
+            incr_x += dx
+            if incr_x >= dy:
+                incr_x -= dy
+                x += dir_x
+            incr_y += dy
+            if incr_y >= dx:
+                incr_y -= dx
+                y += dir_y
 
-            x += x_inc
+        if plot:
+            plt.title(('Intersection ' + str(intersection)))
 
+            #start and end points
+            plt.scatter(x0, y0, color = "g")
+            plt.scatter(x1, y1, color = "pink")
 
-        plt.show()
+            plt.show()
+
+            return intersection
 
         return False
 
