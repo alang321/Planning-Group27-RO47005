@@ -25,7 +25,7 @@ def mpc_control(quadrotor, N, x_init, x_target, obstacles=None, num_states=4, nu
     # Motor Limit
     rpm_lim = 1000
     
-    # Weights
+    # Weight constants
     weights = {
         "positions": 120,
         "attitudes": 20,
@@ -34,6 +34,7 @@ def mpc_control(quadrotor, N, x_init, x_target, obstacles=None, num_states=4, nu
         "inputs": 0.1
     }
 
+    # State weight matrix
     Q = ca.diagcat(
         np.eye(3) * weights["positions"],
         np.eye(3) * weights["attitudes"],
@@ -41,6 +42,7 @@ def mpc_control(quadrotor, N, x_init, x_target, obstacles=None, num_states=4, nu
         np.eye(3) * weights["ang_velocities"]
     )
 
+    # Input weight matrix
     R = np.eye(num_inputs) * weights["inputs"]
 
     
@@ -57,10 +59,10 @@ def mpc_control(quadrotor, N, x_init, x_target, obstacles=None, num_states=4, nu
             opti.subject_to(opti.bounded(0, u[i, k], rpm_lim))
 
         # Cost function
-        x_target[0:2] = path_ref(time, 3)
-        e_k = x_target - x[:, k]
-        e_k[3:6] = angle_difference(x_target[3:6], x[3:6, k])
-        cost += ca.mtimes(e_k.T, ca.mtimes(Q, e_k)) + ca.mtimes(u[:, k].T, ca.mtimes(R, u[:, k]))
+        x_target[0:2] = path_ref(time, 3)  # Update target position
+        e_k = x_target - x[:, k]  # Position error
+        e_k[3:6] = angle_difference(x_target[3:6], x[3:6, k])  # Attitude error
+        cost += ca.mtimes(e_k.T, ca.mtimes(Q, e_k)) + ca.mtimes(u[:, k].T, ca.mtimes(R, u[:, k])) 
 
         # Obstacle Constraints
         for obstacle in obstacles:
@@ -88,18 +90,18 @@ def mpc_control(quadrotor, N, x_init, x_target, obstacles=None, num_states=4, nu
 
     return optimal_solution_x, optimal_solution_u
 
-# Run simulation
+# Simulation Setup
 dt = 0.01
 x_init = np.zeros(12)
 x_target = np.zeros(12)
 x_target[0:3] = [0, 0, 5]
 obstacles = [Obstacle(1.0, 1.0, 0.0, 0.5), Obstacle(2.0, 2.0, 0.0, 0.5)]
 
+# Run simulation
 results = mpc_control(Quadrotor(dt), 500, x_init, x_target, obstacles, 12, 4)
 
 # Extract positions and control inputs
 positions = results[0][0:6, :]
 inputs = results[1]
 
-# plot_control_inputs(inputs)
 animate_trajectory(positions, dt, obstacles)
