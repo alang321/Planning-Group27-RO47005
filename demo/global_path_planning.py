@@ -367,12 +367,23 @@ class Path:
         self.valid = valid
         self.occupany_grid = occupany_grid
 
+        self.path_points = self.calculate_path_points()
+
         if self.valid:
             # convert indeces to points
             path_points = []
             for index in path_indeces:
                 path_points.append(occupany_grid.index_to_point(*index))
             self.path_points = np.array(path_points)
+
+    def calculate_path_points(self):
+        if self.valid:
+            # convert indeces to points
+            path_points = []
+            for index in self.path_indeces:
+                path_points.append(self.occupany_grid.index_to_point(*index))
+            path_points = np.array(path_points)
+        return path_points
 
     def plot(self):
         if self.valid:
