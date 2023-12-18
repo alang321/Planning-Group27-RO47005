@@ -1,15 +1,14 @@
 import numpy as np
 import casadi as ca
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=4, num_inputs=2):
+def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=6, num_inputs=3):
     # Create an optimization problem
     print (f"\n\n CURRENT TARGET: {x_target} \n\n")
 
     opti = ca.Opti()
-
-
+    
     # State & Input matrix
-    Q = np.array([[3, 0, 0, 0], [0, 3, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    Q = np.eye(2)
     R = np.eye(2)
 
     # Define Variables
@@ -23,10 +22,10 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     #Loop through time steps
     for k in range(N):
         # State Constraints
-        constraints += [x[:, k] >= [pos_constraints[0], pos_constraints[2], vel_constraints[0], vel_constraints[2]]]
-        constraints += [x[:, k] <= [pos_constraints[1], pos_constraints[3], vel_constraints[1], vel_constraints[3]]]
-        constraints += [u[:, k] >= [acc_constraints[0], acc_constraints[2]]]
-        constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3]]]
+        constraints += [x[:, k] >= [pos_constraints[0], pos_constraints[2], pos_constraints[4], vel_constraints[0], vel_constraints[2], vel_constraints[4]]]
+        constraints += [x[:, k] <= [pos_constraints[1], pos_constraints[3], pos_constraints[5], vel_constraints[1], vel_constraints[3], vel_constraints[5]]]
+        constraints += [u[:, k] >= [acc_constraints[0], acc_constraints[2], acc_constraints[4]]]
+        constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3], acc_constraints[5]]]
         
         for obstacle in obstacles:
             euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
@@ -42,7 +41,7 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
 
         # Cost function
-        e_k = x_target - x[:, k]
+        e_k = x_target[:2] - x[:, k]
         cost += ca.mtimes(e_k.T, Q @ e_k) + ca.mtimes(u[:, k].T, R @ u[:, k])
     
     # Init Constraint
@@ -70,4 +69,4 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         return optimal_solution_u[:, 0], optimal_solution_x[:, 1], optimal_solution_x
     except RuntimeError:
         print("Solver failed to find a solution.")
-        return [0, 0], x_init, None
+        return [0, 0, 0], x_init, None
