@@ -3,10 +3,13 @@ import casadi as ca
 
 def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=4, num_inputs=2):
     # Create an optimization problem
+    print (f"\n\n CURRENT TARGET: {x_target} \n\n")
+
     opti = ca.Opti()
 
+
     # State & Input matrix
-    Q = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    Q = np.array([[3, 0, 0, 0], [0, 3, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     R = np.eye(2)
 
     # Define Variables
@@ -28,12 +31,12 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         for obstacle in obstacles:
             euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
             constraints += [euclid_distance >= obstacle[2]]
-            # cost += 100/((euclid_distance-obstacle[2])**2 + 0.01)
+            cost += 200/((euclid_distance-obstacle[2])**2 + 0.01)
             
         for obstacle in move_obstacles:
             euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
             constraints += [euclid_distance > obstacle[2]]
-            cost += 5000/((euclid_distance-obstacle[2])**2 + 0.01)
+            cost += 400/((euclid_distance-obstacle[2])**2 + 0.01)
 
         # Dynamics Constraint
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
@@ -64,7 +67,7 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         optimal_solution_x = sol.value(x)
         optimal_cost = sol.value(cost)
         print("Optimal cost:", optimal_cost)
+        return optimal_solution_u[:, 0], optimal_solution_x[:, 1], optimal_solution_x
     except RuntimeError:
         print("Solver failed to find a solution.")
-
-    return optimal_solution_u[:, 0], optimal_solution_x[:, 1], optimal_solution_x
+        return [0, 0], x_init, None
