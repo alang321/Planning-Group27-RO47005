@@ -14,7 +14,7 @@ def angle_difference(a, b):
     diff = ca.fmod(diff + np.pi, 2 * np.pi) - np.pi
     return diff
 
-def animate_trajectory(positions, dt):
+def animate_trajectory(positions, dt, obstacles=None):
     # Extract x, y, z coordinates and rotations
     x_positions, y_positions, z_positions, x_rot, y_rot, z_rot = positions
 
@@ -40,6 +40,17 @@ def animate_trajectory(positions, dt):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
+    def add_sphere(center, radius, color='b', alpha=1.0):
+        # Generate coordinates for the sphere
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
+        x = center[0] + radius * np.outer(np.cos(u), np.sin(v))
+        y = center[1] + radius * np.outer(np.sin(u), np.sin(v))
+        z = center[2] + radius * np.outer(np.ones(np.size(u)), np.cos(v))
+
+        # Add the sphere to the plot
+        ax.plot_surface(x, y, z, color=color, alpha=alpha)
+
     def animate(i):
         ax.clear()
         position = np.array([x_positions[i], y_positions[i], z_positions[i]])
@@ -47,12 +58,18 @@ def animate_trajectory(positions, dt):
         rotated_vertices = np.dot(vertices, rotation.T) + position
         rotated_faces = [[rotated_vertices[j] for j in face] for face in faces]
         ax.add_collection3d(Poly3DCollection(rotated_faces, facecolors=facecolors, linewidths=1, edgecolors='r', alpha=1))
+
+        # Add obstacles
+        for obstacle in obstacles:
+            add_sphere(np.array([obstacle.x, obstacle.y, obstacle.z]), obstacle.radius)
+        
         ax.set_xlim([min(x_positions), max(x_positions)])
         ax.set_ylim([min(y_positions), max(y_positions)])
         ax.set_zlim([min(z_positions), max(z_positions)])
         set_axes_equal(ax)
 
     ani = animation.FuncAnimation(fig, animate, frames=len(x_positions), interval=dt * 1000)
+    ani.save('animation.mp4', writer='ffmpeg')
     plt.show()
 
 def plot_control_inputs(inputs):

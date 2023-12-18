@@ -3,10 +3,14 @@ import casadi as ca
 from quadrotor import Quadrotor
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from helper_functions import path_ref, angle_difference, animate_trajectory, plot_control_inputs
+from obstacle_class import Obstacle
 
-def mpc_control(quadrotor, N, x_init, x_target, num_states=4, num_inputs=2):
+matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\ffmpeg\\bin\\ffmpeg.exe"  # Replace this with the actual path
+
+def mpc_control(quadrotor, N, x_init, x_target, obstacles=None, num_states=4, num_inputs=2):
     # Create an optimization problem
     opti = ca.Opti()
 
@@ -58,6 +62,10 @@ def mpc_control(quadrotor, N, x_init, x_target, num_states=4, num_inputs=2):
         e_k[3:6] = angle_difference(x_target[3:6], x[3:6, k])
         cost += ca.mtimes(e_k.T, ca.mtimes(Q, e_k)) + ca.mtimes(u[:, k].T, ca.mtimes(R, u[:, k]))
 
+        # Obstacle Constraints
+        for obstacle in obstacles:
+            constraints += [obstacle.get_distance(x[0, k], x[1, k], x[2, k]) >= obstacle.radius + 0.1]
+
     
     # Init Constraint
     constraints += [x[:, 0] == x_init] 
@@ -84,12 +92,14 @@ def mpc_control(quadrotor, N, x_init, x_target, num_states=4, num_inputs=2):
 dt = 0.01
 x_init = np.zeros(12)
 x_target = np.zeros(12)
-x_target[0:3] = [0, 0, 0]
-results = mpc_control(Quadrotor(dt), 200, x_init, x_target, 12, 4)
+x_target[0:3] = [0, 0, 5]
+obstacles = [Obstacle(1.0, 1.0, 0.0, 0.5), Obstacle(2.0, 2.0, 0.0, 0.5)]
+
+results = mpc_control(Quadrotor(dt), 500, x_init, x_target, obstacles, 12, 4)
 
 # Extract positions and control inputs
 positions = results[0][0:6, :]
 inputs = results[1]
 
-plot_control_inputs(inputs)
-animate_trajectory(positions, dt)
+# plot_control_inputs(inputs)
+animate_trajectory(positions, dt, obstacles)
