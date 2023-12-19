@@ -23,13 +23,13 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         # State Constraints
         constraints += SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_constraints)
         
-        # Static Obstacle Constraints 
-        SOconstraints, SOcost = StaticObstacleConstraints(obstacles, x, k)
+        # Vertical Static Obstacle Constraints 
+        SOconstraints, SOcost = StaticObstacleConstraints(obstacles, x, k+1)
         constraints += SOconstraints
         cost += SOcost
 
-        # Moving Obstacle Constraints
-        DOconstraints, DOcost = DynamicObstacleConstraints(move_obstacles, x, k)
+        # Horizontal Moving Obstacle Constraints
+        DOconstraints, DOcost = DynamicObstacleConstraints(move_obstacles, x, k+1)
         constraints += DOconstraints
         cost += DOcost
 
