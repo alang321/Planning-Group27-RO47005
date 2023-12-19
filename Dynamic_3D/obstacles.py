@@ -148,4 +148,4 @@ class CylinderHorizontal:
         return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
 
     def get_center_vector(self):
-        return np.array([self.x, self.y]).reshape(2,1)
+        return np.array([self.y, self.z]).reshape(2,1)
