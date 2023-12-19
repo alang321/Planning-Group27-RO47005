@@ -69,8 +69,6 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         return [0, 0, 0], x_init, None
 
 
-
-
 def SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_constraints):
     # Set fixed states and acceleration constraints
     constraints = []

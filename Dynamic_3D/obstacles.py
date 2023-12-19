@@ -1,5 +1,7 @@
 import numpy as np
 import casadi as ca
+import matplotlib.pyplot as plt
+import matplotlib
 
 class CylinderVertical:
     def __init__(self, x, y, radius, extra_cost, velocity=None):
@@ -62,6 +64,10 @@ class CylinderVertical:
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
+    
+    def plotXY(self):
+        circle = plt.Circle((self.x, self.y), self.radius, color='k', fill=False)
+        return circle, None
 
 
 class CylinderHorizontal:
@@ -125,3 +131,8 @@ class CylinderHorizontal:
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
+    
+    def plotXY(self):
+        Line1 = matplotlib.lines.Line2D([self.world.x_range[0], self.world.x_range[0]], [self.y+self.radius, self.y+self.radius], lw=2., color='k', fillstyle='none')
+        Line2 = matplotlib.lines.Line2D([self.world.x_range[1], self.world.x_range[1]], [self.y+self.radius, self.y+self.radius], lw=2., color='k', fillstyle='none')
+        return Line1, Line2
