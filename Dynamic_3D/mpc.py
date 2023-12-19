@@ -19,24 +19,37 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     cost = 0.0
     constraints = []
 
+    V_obstacles = obstacles[0]
+    V_move_obstacles = move_obstacles[0]
+    H_obstacles = obstacles[1]
+    H_move_obstacles = move_obstacles[1]
+
     #Loop through time steps
     for k in range(N):
-        # State Constraints
-        constraints += [x[:, k] >= [pos_constraints[0], pos_constraints[2], pos_constraints[4], vel_constraints[0], vel_constraints[2], vel_constraints[4]]]
-        constraints += [x[:, k] <= [pos_constraints[1], pos_constraints[3], pos_constraints[5], vel_constraints[1], vel_constraints[3], vel_constraints[5]]]
-        constraints += [u[:, k] >= [acc_constraints[0], acc_constraints[2], acc_constraints[4]]]
-        constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3], acc_constraints[5]]]
-        
-        for obstacle in obstacles:
-            euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
-            constraints += [euclid_distance >= obstacle[2]]
-            cost += 200/((euclid_distance-obstacle[2])**2 + 0.01)
-            
-        for obstacle in move_obstacles:
-            euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
-            constraints += [euclid_distance > obstacle[2]]
-            cost += 400/((euclid_distance-obstacle[2])**2 + 0.01)
 
+        # State Constraints
+        constraints += SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_constraints)
+        
+        # Vertical Static Obstacle Constraints 
+        SOconstraints, SOcost = VerticalStaticObstacleConstraints(V_obstacles, x, k)
+        constraints += SOconstraints
+        cost += SOcost
+
+        # Vertical Moving Obstacle Constraints
+        DOconstraints, DOcost = VerticalDynamicObstacleConstraints(V_move_obstacles, x, k)
+        constraints += DOconstraints
+        cost += DOcost
+
+        # Horizontal Static Obstacle Constraints	
+        DOconstraints, DOcost = HorizontalStaticObstacleConstraints(H_obstacles, x, k)
+        constraints += DOconstraints
+        cost += DOcost 
+
+        # Horizontal Moving Obstacle Constraints
+        DOconstraints, DOcost = HorizontalDynamicObstacleConstraints(H_move_obstacles, x, k)
+        constraints += DOconstraints
+        cost += DOcost 
+        
         # Dynamics Constraint
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
 
@@ -56,7 +69,6 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     opti.minimize(cost)
     opti.subject_to(constraints)
 
-    opts = {'ipopt.print_level': 0}  # Set the verbosity level (0-12, default is 5)
     opti.solver('ipopt', {'ipopt.print_level': 0})
 
     # Run Solver
@@ -70,3 +82,53 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     except RuntimeError:
         print("Solver failed to find a solution.")
         return [0, 0, 0], x_init, None
+
+
+
+
+def SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_constraints):
+    # Set fixed states and acceleration constraints
+    constraints = []
+    constraints += [x[:, k] >= [pos_constraints[0], pos_constraints[2], pos_constraints[4], vel_constraints[0], vel_constraints[2], vel_constraints[4]]]
+    constraints += [x[:, k] <= [pos_constraints[1], pos_constraints[3], pos_constraints[5], vel_constraints[1], vel_constraints[3], vel_constraints[5]]]
+    constraints += [u[:, k] >= [acc_constraints[0], acc_constraints[2], acc_constraints[4]]]
+    constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3], acc_constraints[5]]]
+    return constraints
+
+def VerticalStaticObstacleConstraints(obstacles, x, k):
+    constraints = []
+    cost = 0
+    for obstacle in obstacles:
+            euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
+            constraints += [euclid_distance >= obstacle[-1]]
+            cost += 200/((euclid_distance-obstacle[-1])**2 + 0.01)
+    return constraints, cost
+
+def VerticalDynamicObstacleConstraints(move_obstacles, x, k):
+    constraints = []
+    cost = 0
+    for obstacle in move_obstacles:
+            euclid_distance = ca.norm_2( x[0:2,k] - np.array(obstacle[0:2]).reshape(2,1) )
+            constraints += [euclid_distance > obstacle[-1]]
+            cost += 400/((euclid_distance-obstacle[-1])**2 + 0.01)
+    return constraints, cost
+
+def HorizontalStaticObstacleConstraints(obstacles, x, k):
+    constraints = []
+    cost = 0
+    for obstacle in obstacles:
+            euclid_distance = ca.norm_2( x[1:3,k] - np.array(obstacle[0:2]).reshape(2,1) )
+            constraints += [euclid_distance >= obstacle[-1]]
+            cost += 200/((euclid_distance-obstacle[-1])**2 + 0.01)
+    return constraints, cost
+
+def HorizontalDynamicObstacleConstraints(move_obstacles, x, k):
+    constraints = []
+    cost = 0
+    for obstacle in move_obstacles:
+            euclid_distance = ca.norm_2( x[1:3,k] - np.array(obstacle[0:2]).reshape(2,1) )
+            constraints += [euclid_distance > obstacle[-1]]
+            cost += 400/((euclid_distance-obstacle[-1])**2 + 0.01)
+    return constraints, cost
+
+
