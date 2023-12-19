@@ -110,6 +110,10 @@ class World_3D:
         self.obstacles = obstacles
         self.obstacle_margin = obstacle_margin
 
+        #initialize obstacles
+        for obstacle in self.obstacles:
+            obstacle.init_world(self)
+
     def is_colliding(self, point, margin=0):
         for obstacle in self.obstacles:
             squared_dist = (point[0] - obstacle[0]) ** 2 + (point[1] - obstacle[1]) ** 2
@@ -174,28 +178,6 @@ class World_3D:
         ax.set_zlabel('Z')
         plt.show()
 
-    def plot_circle_xy(self, ax, x, y, z, radius, color):
-        #this function plots only a circle in 3d
-        theta = np.linspace(0, 2 * np.pi, 201)
-        x_circ = x + radius * np.cos(theta)
-        y_circ = y + radius * np.sin(theta)
-
-        ax.plot(x_circ, y_circ, z, color=color)
-
-        return ax
-
-    def plot_cylinder_xy(self, ax, x, y, radius, color):
-        #plot a cylinder from lines and circles in 3d
-        #plot the circles
-        self.plot_circle_xy(ax, x, y, self.z_range[0], radius, color)
-        self.plot_circle_xy(ax, x, y, self.z_range[1], radius, color)
-
-        #plot the center line
-        #ax.plot([x, x], [y, y], self.world_3d.z_range)
-        ax.plot([x, x], [y + radius, y + radius], self.z_range, color=color)
-        ax.plot([x, x], [y - radius, y - radius], self.z_range, color=color)
-        ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
-        ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
 
 
 class Node:
