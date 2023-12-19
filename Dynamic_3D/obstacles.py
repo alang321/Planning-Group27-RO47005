@@ -1,4 +1,5 @@
 import numpy as np
+import casadi as ca
 
 class CylinderVertical:
     def __init__(self, x, y, radius, velocity=None):
@@ -44,9 +45,18 @@ class CylinderVertical:
         ax.plot([x, x], [y - radius, y - radius], self.z_range, color=color)
         ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
         ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
-
+    
+    def get_euclid(self, x_sym, k):
+        return ca.norm_2( x_sym[0:2,k] - self.get_center_vector())
+        
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
+    
+    def get_constraint(self, x_sym, k):
+        return [self.get_euclid(x_sym, k) > self.radius[-1]]
+    
+    def get_cost(self, x_sym, k, constant):
+        return constant/((self.get_euclid(x_sym, k)-self.radius)**2 + 0.01)
 
 
 class CylinderHorizontal:

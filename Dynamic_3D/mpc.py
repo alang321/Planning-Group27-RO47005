@@ -99,36 +99,32 @@ def VerticalStaticObstacleConstraints(obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in obstacles:
-            euclid_distance = ca.norm_2( x[0:2,k] - obstacle.get_center_vector())
-            constraints += [euclid_distance >= obstacle[-1]]
-            cost += 200/((euclid_distance-obstacle[-1])**2 + 0.01)
+            constraints += obstacle.get_constraint(x, k)
+            cost = obstacle.get_cost(x, k, 200)
     return constraints, cost
 
 def VerticalDynamicObstacleConstraints(move_obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in move_obstacles:
-            euclid_distance = ca.norm_2( x[0:2,k] - obstacle.get_center_vector() )
-            constraints += [euclid_distance > obstacle[-1]]
-            cost += 400/((euclid_distance-obstacle[-1])**2 + 0.01)
+            constraints += obstacle.get_constraint(x, k)
+            cost = obstacle.get_cost(x, k, 400)
     return constraints, cost
 
 def HorizontalStaticObstacleConstraints(obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in obstacles:
-            euclid_distance = ca.norm_2( x[1:3,k] - obstacle.get_center_vector() )
-            constraints += [euclid_distance >= obstacle[-1]]
-            cost += 200/((euclid_distance-obstacle[-1])**2 + 0.01)
+            constraints += obstacle.get_constraint(x, k)
+            cost = obstacle.get_cost(x, k, 200)
     return constraints, cost
 
 def HorizontalDynamicObstacleConstraints(move_obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in move_obstacles:
-            euclid_distance = ca.norm_2( x[1:3,k] - obstacle.get_center_vector() )
-            constraints += [euclid_distance > obstacle[-1]]
-            cost += 400/((euclid_distance-obstacle[-1])**2 + 0.01)
+            constraints += obstacle.get_constraint(x, k)
+            cost = obstacle.get_cost(x, k, 400)
     return constraints, cost
 
 
