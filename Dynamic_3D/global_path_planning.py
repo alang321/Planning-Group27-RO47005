@@ -28,8 +28,6 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         if report_progress:
             if i % 10 == 0:
                 f.value = i
-            if i % 1000 == 0:
-                print(f"Success state: {success}")
 
         rnd_pos = world_3d.get_random_point()
 
@@ -126,7 +124,7 @@ class World_3D:
                 return True
         return False
 
-    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, point_spacing=0.1):
+    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, point_spacing=0.5):
         #create points along the line with given spacing
         dist = ((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2) ** 0.5
         num_points = int(dist / point_spacing)
