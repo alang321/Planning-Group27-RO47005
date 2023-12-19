@@ -35,25 +35,31 @@ class CylinderVertical:
     def plot(self, ax, color, world_3d):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
-        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[0], radius, color)
-        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[1], radius, color)
+        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[0], self.radius, color)
+        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[1], self.radius, color)
 
         #plot the center line
         #ax.plot([x, x], [y, y], self.world_3d.z_range)
-        ax.plot([x, x], [y + radius, y + radius], self.z_range, color=color)
-        ax.plot([x, x], [y - radius, y - radius], self.z_range, color=color)
-        ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
-        ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
+        ax.plot([self.x, self.x], [self.y + self.radius, self.y + self.radius], self.world.z_range, color=color)
+        ax.plot([self.x, self.x], [self.y - self.radius, self.y - self.radius], self.world.z_range, color=color)
+        ax.plot([self.x + self.radius, self.x + self.radius], [self.y, self.y], self.world.z_range, color=color)
+        ax.plot([self.x - self.radius, self.x - self.radius], [self.y, self.y], self.world.z_range, color=color)
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
 
 
 class CylinderHorizontal:
-    def __init__(self, y, z, radius):
-        self.x = y
-        self.y = z
+    def __init__(self, y, z, radius, velocity=None):
+        self.y = y
+        self.z = z
         self.radius = radius
+        self.velocity = velocity
+
+        self.world = None
+
+    def init_world(self, world):
+        self.world = world
 
     def is_colliding(self, point):
         squared_dist = (point[0] - self.x) ** 2 + (point[1] - self.y) ** 2
@@ -61,29 +67,28 @@ class CylinderHorizontal:
             return True
         return False
 
-
-    def plot_circle_xy(self, ax, x, y, z, radius, color):
+    def plot_circle_yz(self, ax, x, y, z, radius, color):
         #this function plots only a circle in 3d
         theta = np.linspace(0, 2 * np.pi, 201)
-        x_circ = x + radius * np.cos(theta)
-        y_circ = y + radius * np.sin(theta)
+        y_circ = y + radius * np.cos(theta)
+        z_circ = z + radius * np.sin(theta)
 
-        ax.plot(x_circ, y_circ, z, color=color)
+        ax.plot(x, y_circ, z_circ, color=color)
 
         return ax
 
-    def plot_cylinder_xy(self, ax, x, y, radius, color):
+    def plot(self, ax, color, world_3d):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
-        self.plot_circle_xy(ax, x, y, self.z_range[0], radius, color)
-        self.plot_circle_xy(ax, x, y, self.z_range[1], radius, color)
+        self.plot_circle_yz(ax, self.x, self.y, self.world.z_range[0], self.radius, color)
+        self.plot_circle_yz(ax, self.x, self.y, self.world.z_range[1], self.radius, color)
 
         #plot the center line
         #ax.plot([x, x], [y, y], self.world_3d.z_range)
-        ax.plot([x, x], [y + radius, y + radius], self.z_range, color=color)
-        ax.plot([x, x], [y - radius, y - radius], self.z_range, color=color)
-        ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
-        ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
+        ax.plot(self.world.x_range, [self.y, self.y], [self.z + self.radius, self.z + self.radius], color=color)
+        ax.plot(self.world.x_range, [self.y, self.y], [self.z - self.radius, self.z - self.radius], self.world.z_range, color=color)
+        ax.plot(self.world.x_range, [self.y + self.radius, self.y + self.radius], [self.z, self.z], self.world.z_range, color=color)
+        ax.plot(self.world.x_range, [self.y - self.radius, self.y - self.radius], [self.z, self.z], self.world.z_range, color=color)
     
     def get_center_vector(self):
         return np.array([self.y, self.z]).reshape(2,1)
