@@ -166,7 +166,7 @@ class World_3D:
         # Set the origin (0, 0, 0) point at the center of the plot
         ax.plot([0], [0], [0], marker='o', markersize=5, color='black')  # Plot a point at the origin
 
-        #ax.set_aspect('equal', adjustable='box')
+        ax.set_aspect('equal', adjustable='box')
 
         ax.set_xlim(self.x_range)
         ax.set_ylim(self.y_range)
