@@ -114,9 +114,9 @@ class World_3D:
         for obstacle in self.obstacles:
             obstacle.init_world(self)
 
-    def is_colliding(self, point, margin=0):
+    def is_colliding(self, point):
         for obstacle in self.obstacles:
-            if obstacle.is_colliding(point, margin):
+            if obstacle.is_colliding(point, self.obstacle_margin):
                 return True
         return False
 
@@ -154,7 +154,7 @@ class World_3D:
 
         #plot obstacles
         for obstacle in self.obstacles:
-            self.plot_cylinder_xy(ax, obstacle[0], obstacle[1], obstacle[2], 'red')
+            obstacle.plot(ax, 'red')
 
         if path is not None:
             path_points = np.array(path.path_points)
@@ -166,7 +166,7 @@ class World_3D:
         # Set the origin (0, 0, 0) point at the center of the plot
         ax.plot([0], [0], [0], marker='o', markersize=5, color='black')  # Plot a point at the origin
 
-        ax.set_aspect('equal', adjustable='box')
+        #ax.set_aspect('equal', adjustable='box')
 
         ax.set_xlim(self.x_range)
         ax.set_ylim(self.y_range)

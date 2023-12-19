@@ -19,8 +19,9 @@ class CylinderVertical:
         return False
 
     def update(self, dt):
-        self.x += self.velocity[0] * dt
-        self.y += self.velocity[1] * dt
+        if self.velocity is not None:
+            self.x += self.velocity[0] * dt
+            self.y += self.velocity[1] * dt
 
     def plot_circle_xy(self, ax, x, y, z, radius, color):
         #this function plots only a circle in 3d
@@ -32,7 +33,7 @@ class CylinderVertical:
 
         return ax
 
-    def plot(self, ax, color, world_3d):
+    def plot(self, ax, color):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
         self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[0], self.radius, color)
@@ -67,6 +68,11 @@ class CylinderHorizontal:
             return True
         return False
 
+    def update(self, dt):
+        if self.velocity is not None:
+            self.x += self.velocity[0] * dt
+            self.y += self.velocity[1] * dt
+
     def plot_circle_yz(self, ax, x, y, z, radius, color):
         #this function plots only a circle in 3d
         theta = np.linspace(0, 2 * np.pi, 201)
@@ -77,7 +83,7 @@ class CylinderHorizontal:
 
         return ax
 
-    def plot(self, ax, color, world_3d):
+    def plot(self, ax, color):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
         self.plot_circle_yz(ax, self.x, self.y, self.world.z_range[0], self.radius, color)
