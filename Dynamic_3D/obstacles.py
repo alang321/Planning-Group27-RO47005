@@ -45,10 +45,14 @@ class CylinderVertical:
         ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
         ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
 
+    def get_center_vector(self):
+        return np.array([self.x, self.y]).reshape(2,1)
+
+
 class CylinderHorizontal:
-    def __init__(self, x, y, radius):
-        self.x = x
-        self.y = y
+    def __init__(self, y, z, radius):
+        self.x = y
+        self.y = z
         self.radius = radius
 
     def is_colliding(self, point):
@@ -80,3 +84,6 @@ class CylinderHorizontal:
         ax.plot([x, x], [y - radius, y - radius], self.z_range, color=color)
         ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
         ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
+    
+    def get_center_vector(self):
+        return np.array([self.y, self.z]).reshape(2,1)
