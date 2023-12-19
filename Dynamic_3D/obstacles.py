@@ -69,7 +69,8 @@ class CylinderVertical:
         return [self.get_euclid(x_sym, k) > self.radius]
 
     def get_cost(self, x_sym, k):
-        return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
+        cost = self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
+        return cost
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
