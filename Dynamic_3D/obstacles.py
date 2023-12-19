@@ -2,11 +2,12 @@ import numpy as np
 import casadi as ca
 
 class CylinderVertical:
-    def __init__(self, x, y, radius, velocity=None):
+    def __init__(self, x, y, radius, extra_cost, velocity=None):
         self.x = x
         self.y = y
         self.radius = radius
         self.velocity = velocity
+        self.extra_cost = extra_cost
 
         self.world = None
 
@@ -56,19 +57,20 @@ class CylinderVertical:
     def get_constraint(self, x_sym, k):
         return [self.get_euclid(x_sym, k) > self.radius[-1]]
 
-    def get_cost(self, x_sym, k, constant):
-        return constant / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
+    def get_cost(self, x_sym, k):
+        return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
 
 
 class CylinderHorizontal:
-    def __init__(self, y, z, radius, velocity=None):
+    def __init__(self, y, z, radius, extra_cost, velocity=None):
         self.y = y
         self.z = z
         self.radius = radius
         self.velocity = velocity
+        self.extra_cost = extra_cost
 
         self.world = None
 
@@ -118,8 +120,8 @@ class CylinderHorizontal:
     def get_constraint(self, x_sym, k):
         return [self.get_euclid(x_sym, k) > self.radius[-1]]
 
-    def get_cost(self, x_sym, k, constant):
-        return constant / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
+    def get_cost(self, x_sym, k):
+        return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
