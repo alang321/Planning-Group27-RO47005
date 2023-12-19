@@ -43,6 +43,12 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
         for node, dist in sorted_nodes:
+            #plot the line to the nearest node
+            #path_points = np.array([node.position, rnd_pos])
+            #is_colliding = world_3d.is_line_colliding(*node.position, *rnd_pos)
+            #path = Path(path_points, node.position, rnd_pos, str(is_colliding), world_3d, valid=True)
+            #world_3d.plot2d(path)
+            #print(is_colliding)
             if not world_3d.is_line_colliding(*node.position, *rnd_pos):
                 nearest_node = node
                 nearest_dist_sq = dist
@@ -120,20 +126,18 @@ class World_3D:
                 return True
         return False
 
-    def is_line_colliding(self, x0, y0, x1, y1, margin=0, point_spacing=0.1):
+    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, point_spacing=0.1):
         #create points along the line with given spacing
-        point_fractions = np.arange(0, 1, point_spacing)
+        dist = ((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2) ** 0.5
+        num_points = int(dist / point_spacing)
+        point_fractions = np.linspace(0, 1, num_points, endpoint=True)
 
         for fraction in point_fractions:
             x = x0 + fraction * (x1 - x0)
             y = y0 + fraction * (y1 - y0)
-            if self.is_colliding((x, y), margin):
+            z = z0 + fraction * (z1 - z0)
+            if self.is_colliding((x, y, z)):
                 return True
-
-        if self.is_colliding((x1, y1), margin):
-            return True
-
-        return False
 
     def get_random_point(self):
         x = np.random.uniform(self.x_range[0], self.x_range[1])
@@ -145,28 +149,36 @@ class World_3D:
         return pos_x >= self.x_range[0] and pos_x <= self.x_range[1] and pos_y >= self.y_range[0] and pos_y <= self.y_range[1]
 
 
-    def plot(self, path=None):
+    def plot(self, path=None, elev=None, azim=None, ortho=False):
         #plot the 3d cylinder obstacles and the path from the top side and front
         # x = 0, y = 1, z = 2
         #for direction in range(3):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
+        # Set the elevation and azimuth for the top-down view
+        if elev is not None and azim is not None:
+            ax.view_init(elev=elev, azim=azim)
+
         #plot obstacles
         for obstacle in self.obstacles:
             obstacle.plot(ax, 'red')
 
         if path is not None:
-            path_points = np.array(path.path_points)
-            ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
-            #plot start and end point
-            ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
-            ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
+            if path.valid:
+                path_points = np.array(path.path_points)
+                ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
+                #plot start and end point
+                ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
+                ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
         
         # Set the origin (0, 0, 0) point at the center of the plot
         ax.plot([0], [0], [0], marker='o', markersize=5, color='black')  # Plot a point at the origin
 
         ax.set_aspect('equal', adjustable='box')
+
+        if ortho:
+            ax.set_proj_type('ortho')
 
         ax.set_xlim(self.x_range)
         ax.set_ylim(self.y_range)
@@ -175,6 +187,10 @@ class World_3D:
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
         plt.show()
+
+    def plot2d(self, path=None):
+        self.plot(path, elev=90, azim=0, ortho=True)
+
 
 
 
