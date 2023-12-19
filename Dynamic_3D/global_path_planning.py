@@ -38,7 +38,7 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
         for node, dist in sorted_nodes:
-            if not world_3d.is_line_colliding(*node.psoition, *rnd_pos):
+            if not world_3d.is_line_colliding(*node.position, *rnd_pos):
                 nearest_node = node
                 nearest_dist_sq = dist
 
