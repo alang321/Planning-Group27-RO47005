@@ -28,8 +28,6 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         if report_progress:
             if i % 10 == 0:
                 f.value = i
-            if i % 1000 == 0:
-                print(f"Success state: {success}")
 
         rnd_pos = world_3d.get_random_point()
 
