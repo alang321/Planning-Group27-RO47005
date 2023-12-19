@@ -16,7 +16,7 @@ class CylinderVertical:
     def init_world(self, world):
         self.world = world
 
-    def is_colliding(self, point, margin):
+    def is_colliding(self, point, margin=0):
         squared_dist = (point[0] - self.x) ** 2 + (point[1] - self.y) ** 2
         if squared_dist <= (self.radius + margin) ** 2:
             return True
@@ -83,9 +83,9 @@ class CylinderHorizontal:
     def init_world(self, world):
         self.world = world
 
-    def is_colliding(self, point):
-        squared_dist = (point[0] - self.x) ** 2 + (point[1] - self.y) ** 2
-        if squared_dist <= self.radius ** 2:
+    def is_colliding(self, point, margin=0):
+        squared_dist = (point[1] - self.y) ** 2 + (point[2] - self.z) ** 2
+        if squared_dist <= (self.radius + margin) ** 2:
             return True
         return False
 
