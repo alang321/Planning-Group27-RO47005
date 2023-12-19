@@ -191,6 +191,21 @@ class World_3D:
     def plot2d(self, path=None):
         self.plot(path, elev=90, azim=0, ortho=True)
 
+    def plot2d_ax(self, ax, path=None):
+        # plot obstacles
+        for obstacle in self.obstacles:
+            obstacle.plot_xy(ax, 'red')
+
+        if path is not None:
+            if path.valid:
+                path_points = np.array(path.path_points)
+                ax.plot(path_points[:, 0], path_points[:, 1], color='blue')
+                # plot start and end point
+                ax.scatter(path.start[0], path.start[1], color='green')
+                ax.scatter(path.goal[0], path.goal[1], color='green')
+
+
+
 
 
 

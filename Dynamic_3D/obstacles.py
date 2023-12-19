@@ -37,6 +37,15 @@ class CylinderVertical:
 
         return ax
 
+    def plot_xy(self, ax, color):
+        #this function plots only a circle in 3d
+        theta = np.linspace(0, 2 * np.pi, 201)
+        x_circ = self.x + self.radius * np.cos(theta)
+        y_circ = self.y + self.radius * np.sin(theta)
+
+        ax.plot(x_circ, y_circ, color=color)
+        return ax
+
     def plot(self, ax, color):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
@@ -64,10 +73,7 @@ class CylinderVertical:
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
-    
-    def plotXY(self):
-        circle = plt.Circle((self.x, self.y), self.radius, color='k', fill=False)
-        return circle, None
+
 
 
 class CylinderHorizontal:
@@ -104,6 +110,17 @@ class CylinderHorizontal:
 
         return ax
 
+    def plot_xy(self, ax, color):
+        #make a square
+        points = np.array([[self.world.x_range[0], self.y - self.radius],
+                  [self.world.x_range[0], self.y + self.radius],
+                  [self.world.x_range[1], self.y + self.radius],
+                  [self.world.x_range[1], self.y + self.radius],
+                  [self.world.x_range[0], self.y - self.radius]])
+
+        ax.plot(points[:, 0], points[:, 1], color=color)
+        return ax
+
     def plot(self, ax, color):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
@@ -131,8 +148,3 @@ class CylinderHorizontal:
 
     def get_center_vector(self):
         return np.array([self.x, self.y]).reshape(2,1)
-    
-    def plotXY(self):
-        Line1 = matplotlib.lines.Line2D([self.world.x_range[0], self.world.x_range[0]], [self.y+self.radius, self.y+self.radius], lw=2., color='k', fillstyle='none')
-        Line2 = matplotlib.lines.Line2D([self.world.x_range[1], self.world.x_range[1]], [self.y+self.radius, self.y+self.radius], lw=2., color='k', fillstyle='none')
-        return Line1, Line2
