@@ -14,7 +14,7 @@ class CylinderVertical:
 
 
 class CylinderHorizontal:
-    class __init__(self, x, y, radius):
+    def __init__(self, x, y, radius):
         self.x = x
         self.y = y
         self.radius = radius
