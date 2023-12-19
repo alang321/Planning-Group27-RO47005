@@ -114,7 +114,7 @@ class World_3D:
         self.obstacles = obstacles
         self.obstacle_margin = obstacle_margin
 
-        #initialize obstacles
+        # initialize obstacles
         for obstacle in self.obstacles:
             obstacle.init_world(self)
 
@@ -148,9 +148,9 @@ class World_3D:
 
 
     def plot(self, path=None, elev=None, azim=None, ortho=False):
-        #plot the 3d cylinder obstacles and the path from the top side and front
+        # plot the 3d cylinder obstacles and the path from the top side and front
         # x = 0, y = 1, z = 2
-        #for direction in range(3):
+        # for direction in range(3):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -166,6 +166,10 @@ class World_3D:
             if path.valid:
                 path_points = np.array(path.path_points)
                 ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
+
+                #plot path points in blue
+                ax.scatter(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
+
                 #plot start and end point
                 ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
                 ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
@@ -252,6 +256,33 @@ class Path:
         self.world_3d = world_3d
 
         self.path_points = path_points
+
+    def get_subdivided_path(self, max_length):
+        #subdivide the path into num_points points
+        if self.path_points is None:
+            return None
+
+        if len(self.path_points) < 2:
+            return None
+
+        #subdivide the path
+        path_points = []
+        for i in range(len(self.path_points) - 1):
+            path_points.append(self.path_points[i])
+            dist_sq = ((self.path_points[i][0] - self.path_points[i + 1][0]) ** 2 + (self.path_points[i][1] - self.path_points[i + 1][1]) ** 2 + (self.path_points[i][2] - self.path_points[i + 1][2]) ** 2)
+
+            num_extra_points = int(dist_sq ** 0.5 / max_length) + 1
+
+            for j in range(num_extra_points):
+                fraction = (j + 1) / (num_extra_points + 1)
+                x = self.path_points[i][0] + (self.path_points[i + 1][0] - self.path_points[i][0]) * fraction
+                y = self.path_points[i][1] + (self.path_points[i + 1][1] - self.path_points[i][1]) * fraction
+                z = self.path_points[i][2] + (self.path_points[i + 1][2] - self.path_points[i][2]) * fraction
+                path_points.append([x, y, z])
+
+        path_points.append(self.path_points[-1])
+
+        return Path(path_points, self.start, self.goal, self.name, self.world_3d, self.valid)
 
 
 
