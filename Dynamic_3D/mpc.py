@@ -3,8 +3,6 @@ import casadi as ca
 
 def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=6, num_inputs=3):
     # Create an optimization problem
-    print (f"\n\n CURRENT TARGET: {x_target} \n\n")
-
     opti = ca.Opti()
     
     # State & Input matrix
