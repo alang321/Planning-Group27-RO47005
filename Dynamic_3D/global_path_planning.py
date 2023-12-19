@@ -197,8 +197,6 @@ class World_3D:
         ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
         ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
 
-class Cylinder:
-
 
 class Node:
     def __init__(self, parent, position):
