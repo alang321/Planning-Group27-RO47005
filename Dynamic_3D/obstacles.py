@@ -1,3 +1,5 @@
+import numpy as np
+
 class CylinderVertical:
     def __init__(self, x, y, radius):
         self.x = x
@@ -12,11 +14,15 @@ class CylinderVertical:
 
     def
 
+    def get_center_vector(self):
+        return np.array([self.x, self.y]).reshape(2,1)
+    
+
 
 class CylinderHorizontal:
-    def __init__(self, x, y, radius):
-        self.x = x
-        self.y = y
+    def __init__(self, y, z, radius):
+        self.x = y
+        self.y = z
         self.radius = radius
 
     def is_colliding(self, point):
@@ -24,3 +30,6 @@ class CylinderHorizontal:
         if squared_dist <= self.radius ** 2:
             return True
         return False
+    
+    def get_center_vector(self):
+        return np.array([self.y, self.z]).reshape(2,1)
