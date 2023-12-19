@@ -10,7 +10,7 @@ def MovingObstacleConvert(move_obstacles, t, dt):
 
     return new_fixed_obs
 
-def simulate(dt, T, x_init, plan_length, control_func, move_obstacles, path_rrt, waypoint_radius, num_states = 4, num_inputs = 2):
+def simulate(dt, T, x_init, plan_length, control_func, move_obstacles, path_rrt, waypoint_radius, num_states = 6, num_inputs = 3):
     ## Timesteps
     timesteps = np.arange(0, T, dt)
     print(f"Timesteps: {len(timesteps)}")
@@ -33,7 +33,7 @@ def simulate(dt, T, x_init, plan_length, control_func, move_obstacles, path_rrt,
             waypoint_idx += 1
      
 
-        target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], 0, 0]
+        target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0]
         # Compute the control input (and apply it)
         move_obstacles_update = MovingObstacleConvert(move_obstacles, t, dt)
         u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, move_obstacles_update)
