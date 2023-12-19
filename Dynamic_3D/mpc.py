@@ -24,6 +24,9 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     H_obstacles = obstacles[1]
     H_move_obstacles = move_obstacles[1]
 
+    static_cost = 200
+    dynamic_cost = 400
+
     #Loop through time steps
     for k in range(N):
 
@@ -31,22 +34,22 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         constraints += SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_constraints)
         
         # Vertical Static Obstacle Constraints 
-        SOconstraints, SOcost = VerticalStaticObstacleConstraints(V_obstacles, x, k)
+        SOconstraints, SOcost = VerticalStaticObstacleConstraints(V_obstacles, x, k, static_cost)
         constraints += SOconstraints
         cost += SOcost
 
         # Vertical Moving Obstacle Constraints
-        DOconstraints, DOcost = VerticalDynamicObstacleConstraints(V_move_obstacles, x, k)
+        DOconstraints, DOcost = VerticalDynamicObstacleConstraints(V_move_obstacles, x, k, dynamic_cost)
         constraints += DOconstraints
         cost += DOcost
 
         # Horizontal Static Obstacle Constraints	
-        DOconstraints, DOcost = HorizontalStaticObstacleConstraints(H_obstacles, x, k)
+        DOconstraints, DOcost = HorizontalStaticObstacleConstraints(H_obstacles, x, k, static_cost)
         constraints += DOconstraints
         cost += DOcost 
 
         # Horizontal Moving Obstacle Constraints
-        DOconstraints, DOcost = HorizontalDynamicObstacleConstraints(H_move_obstacles, x, k)
+        DOconstraints, DOcost = HorizontalDynamicObstacleConstraints(H_move_obstacles, x, k, dynamic_cost)
         constraints += DOconstraints
         cost += DOcost 
         
@@ -95,36 +98,36 @@ def SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_cons
     constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3], acc_constraints[5]]]
     return constraints
 
-def VerticalStaticObstacleConstraints(obstacles, x, k):
+def VerticalStaticObstacleConstraints(obstacles, x, k, constant):
     constraints = []
     cost = 0
     for obstacle in obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k, 200)
+            cost = obstacle.get_cost(x, k, constant)
     return constraints, cost
 
-def VerticalDynamicObstacleConstraints(move_obstacles, x, k):
+def VerticalDynamicObstacleConstraints(move_obstacles, x, k, constant):
     constraints = []
     cost = 0
     for obstacle in move_obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k, 400)
+            cost = obstacle.get_cost(x, k, constant)
     return constraints, cost
 
-def HorizontalStaticObstacleConstraints(obstacles, x, k):
+def HorizontalStaticObstacleConstraints(obstacles, x, k, constant):
     constraints = []
     cost = 0
     for obstacle in obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k, 200)
+            cost = obstacle.get_cost(x, k, constant)
     return constraints, cost
 
-def HorizontalDynamicObstacleConstraints(move_obstacles, x, k):
+def HorizontalDynamicObstacleConstraints(move_obstacles, x, k, constant):
     constraints = []
     cost = 0
     for obstacle in move_obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k, 400)
+            cost = obstacle.get_cost(x, k, constant)
     return constraints, cost
 
 
