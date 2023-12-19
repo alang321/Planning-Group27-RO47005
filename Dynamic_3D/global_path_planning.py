@@ -28,6 +28,8 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         if report_progress:
             if i % 10 == 0:
                 f.value = i
+            if i % 1000 == 0:
+                print(f"Success state: {success}")
 
         rnd_pos = world_3d.get_random_point()
 
@@ -41,7 +43,7 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
         for node, dist in sorted_nodes:
-            if not world_3d.is_line_colliding(*node.psoition, *rnd_pos):
+            if not world_3d.is_line_colliding(*node.position, *rnd_pos):
                 nearest_node = node
                 nearest_dist_sq = dist
 
@@ -158,6 +160,9 @@ class World_3D:
             #plot start and end point
             ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
             ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
+        
+        # Set the origin (0, 0, 0) point at the center of the plot
+        ax.plot([0], [0], [0], marker='o', markersize=5, color='black')  # Plot a point at the origin
 
         ax.set_aspect('equal', adjustable='box')
 
