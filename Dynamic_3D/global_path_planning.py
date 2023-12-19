@@ -116,14 +116,12 @@ class World_3D:
 
     def is_colliding(self, point, margin=0):
         for obstacle in self.obstacles:
-            squared_dist = (point[0] - obstacle[0]) ** 2 + (point[1] - obstacle[1]) ** 2
-            if squared_dist <= (obstacle[2] + margin + self.obstacle_margin) ** 2:
+            if obstacle.is_colliding(point, margin):
                 return True
         return False
 
     def is_line_colliding(self, x0, y0, x1, y1, margin=0, point_spacing=0.1):
         #create points along the line with given spacing
-        dist = ((x0 - x1) ** 2 + (y0 - y1) ** 2) ** 0.5
         point_fractions = np.arange(0, 1, point_spacing)
 
         for fraction in point_fractions:
