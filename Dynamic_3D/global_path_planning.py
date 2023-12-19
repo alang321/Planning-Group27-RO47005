@@ -39,7 +39,7 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         # Find nearest valid node
         nearest_node = None
         nearest_dist_sq = None
-        dist_sq = [(node.position[0] - rnd_pos[0]) ** 2 + (node.position[1] - rnd_pos[1]) ** + (node.position[2] - rnd_pos[2]) ** 2 for node in nodes]
+        dist_sq = [(node.position[0] - rnd_pos[0]) ** 2 + (node.position[1] - rnd_pos[1]) ** 2 + (node.position[2] - rnd_pos[2]) ** 2 for node in nodes]
 
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
         for node, dist in sorted_nodes:
@@ -78,7 +78,7 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         nodes.append(new_node)
 
         dist_sq = new_node.distance_sq(goal_node)
-        if dist_sq < 2 * radius_sq:
+        if dist_sq < 4 * radius_sq:
             if not world_3d.is_line_colliding(*new_node.position, *goal_node.position):
                 dist = dist_sq ** 0.5
                 if goal_node.g is None or new_node.g + dist < goal_node.g:
@@ -126,7 +126,7 @@ class World_3D:
                 return True
         return False
 
-    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, point_spacing=0.1):
+    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, point_spacing=0.5):
         #create points along the line with given spacing
         dist = ((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2) ** 0.5
         num_points = int(dist / point_spacing)
