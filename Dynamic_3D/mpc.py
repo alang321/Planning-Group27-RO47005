@@ -8,8 +8,8 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     opti = ca.Opti()
     
     # State & Input matrix
-    Q = np.eye(2)
-    R = np.eye(2)
+    Q = ca.DM.eye(3)
+    R = ca.DM.eye(3)
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
@@ -39,14 +39,14 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
 
         # Cost function
-        e_k = x_target[:2] - x[:, k]
+        e_k = x_target[:3] - x[:3, k]
         cost += ca.mtimes(e_k.T, Q @ e_k) + ca.mtimes(u[:, k].T, R @ u[:, k])
     
     # Init Constraint
     constraints += [x[:, 0] == x_init] 
 
     # Cost last state
-    e_N = x_target - x[:, -1]
+    e_N = x_target[:3] - x[:3, -1]
     cost += ca.mtimes(e_N.T, Q @ e_N)
     
     
@@ -78,20 +78,20 @@ def SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_cons
     constraints += [u[:, k] <= [acc_constraints[1], acc_constraints[3], acc_constraints[5]]]
     return constraints
 
-def StaticObstacleConstraints(obstacles, x, k, constant):
+def StaticObstacleConstraints(obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k, constant)
+            cost = obstacle.get_cost(x, k)
     return constraints, cost
 
-def DynamicObstacleConstraints(move_obstacles, x, k, constant):
+def DynamicObstacleConstraints(move_obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in move_obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k, constant)
+            cost = obstacle.get_cost(x, k)
     return constraints, cost
 
 

@@ -57,7 +57,7 @@ class CylinderVertical:
         return np.array([self.x, self.y]).reshape(2, 1)
 
     def get_constraint(self, x_sym, k):
-        return [self.get_euclid(x_sym, k) > self.radius[-1]]
+        return [self.get_euclid(x_sym, k) > self.radius]
 
     def get_cost(self, x_sym, k):
         return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
@@ -124,7 +124,7 @@ class CylinderHorizontal:
         return np.array([self.x, self.y]).reshape(2, 1)
 
     def get_constraint(self, x_sym, k):
-        return [self.get_euclid(x_sym, k) > self.radius[-1]]
+        return [self.get_euclid(x_sym, k) > self.radius]
 
     def get_cost(self, x_sym, k):
         return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
