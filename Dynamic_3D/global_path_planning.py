@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import operator
 
+from mpl_toolkits.mplot3d import art3d
+
+
 def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True):
     # Initialize start and goal node
     start_node = Node(None, start)
@@ -137,8 +140,57 @@ class World_3D:
     def is_in_constraints(self, pos_x, pos_y):
         return pos_x >= self.x_range[0] and pos_x <= self.x_range[1] and pos_y >= self.y_range[0] and pos_y <= self.y_range[1]
 
-    def plot(self):
-        print("not implemented")
+
+    def plot(self, path=None):
+        #plot the 3d cylinder obstacles and the path from the top side and front
+        # x = 0, y = 1, z = 2
+        #for direction in range(3):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        #plot obstacles
+        for obstacle in self.obstacles:
+            self.plot_cylinder_xy(ax, obstacle[0], obstacle[1], obstacle[2], 'red')
+
+        if path is not None:
+            path_points = np.array(path.path_points)
+            ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
+            #plot start and end point
+            ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
+            ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
+
+        ax.set_xlim(self.x_range)
+        ax.set_ylim(self.y_range)
+        ax.set_zlim(self.z_range)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        plt.show()
+
+    def plot_circle_xy(self, ax, x, y, z, radius, color):
+        #this function plots only a circle in 3d
+        theta = np.linspace(0, 2 * np.pi, 201)
+        x_circ = x + radius * np.cos(theta)
+        y_circ = y + radius * np.sin(theta)
+
+        ax.plot(x_circ, y_circ, z, color=color)
+
+        return ax
+
+    def plot_cylinder_xy(self, ax, x, y, radius, color):
+        #plot a cylinder from lines and circles in 3d
+        #plot the circles
+        self.plot_circle_xy(ax, x, y, self.z_range[0], radius, color)
+        self.plot_circle_xy(ax, x, y, self.z_range[1], radius, color)
+
+        #plot the center line
+        #ax.plot([x, x], [y, y], self.world_3d.z_range)
+        ax.plot([x, x], [y + radius, y + radius], self.z_range, color=color)
+        ax.plot([x, x], [y - radius, y - radius], self.z_range, color=color)
+        ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
+        ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
+
+
 
 
 class Node:
@@ -175,7 +227,7 @@ class Node:
         return self.f >= other.f
 
     def __str__(self):
-        return f'Node: {self.index}, g: {self.g}'
+        return f'Node: {self.position}, g: {self.g}'
 
 class Path:
     def __init__(self, path_points, start, goal, name, world_3d, valid=True):
@@ -187,6 +239,8 @@ class Path:
 
         self.path_points = path_points
 
-    def plot(self):
-        print("not implemented")
-        return
+
+
+
+
+            
