@@ -109,5 +109,17 @@ class CylinderHorizontal:
         ax.plot(self.world.x_range, [self.y + self.radius, self.y + self.radius], [self.z, self.z], self.world.z_range, color=color)
         ax.plot(self.world.x_range, [self.y - self.radius, self.y - self.radius], [self.z, self.z], self.world.z_range, color=color)
     
+    def get_euclid(self, x_sym, k):
+        return ca.norm_2(x_sym[1:3, k] - self.get_center_vector())
+
     def get_center_vector(self):
-        return np.array([self.y, self.z]).reshape(2,1)
+        return np.array([self.x, self.y]).reshape(2, 1)
+
+    def get_constraint(self, x_sym, k):
+        return [self.get_euclid(x_sym, k) > self.radius[-1]]
+
+    def get_cost(self, x_sym, k, constant):
+        return constant / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
+
+    def get_center_vector(self):
+        return np.array([self.x, self.y]).reshape(2,1)
