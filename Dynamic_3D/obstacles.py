@@ -3,6 +3,25 @@ import casadi as ca
 import matplotlib.pyplot as plt
 import matplotlib
 
+def init_obstacles(V_obstacles, V_move_obstacles, H_obstacles, H_move_obstacles, static_cost, dynamic_cost):
+    obstacles = []
+    move_obstacles = []
+    
+    # Class Creation
+    for V_obstacle in V_obstacles:
+        obstacles.append(CylinderVertical(V_obstacle[0], V_obstacle[1], V_obstacle[2], static_cost))
+
+    for H_obstacle in H_obstacles:
+        obstacles.append(CylinderHorizontal(H_obstacle[0], H_obstacle[1], H_obstacle[2], static_cost))
+
+    for V_move_obstacle in V_move_obstacles:
+        move_obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4]))
+
+    for H_move_obstacle in H_move_obstacles:
+        move_obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4]))
+
+    return obstacles, move_obstacles
+
 class CylinderVertical:
     def __init__(self, x, y, radius, extra_cost, velocity=None):
         self.x = x
@@ -98,8 +117,8 @@ class CylinderHorizontal:
 
     def update(self, dt):
         if self.velocity is not None:
-            self.x += self.velocity[0] * dt
-            self.y += self.velocity[1] * dt
+            self.y += self.velocity[0] * dt
+            self.z += self.velocity[1] * dt
 
     def plot_circle_yz(self, ax, x, y, z, radius, color):
         #this function plots only a circle in 3d
@@ -112,14 +131,14 @@ class CylinderHorizontal:
         return ax
 
     def plot_xy(self, ax, color):
-        #make a square
-        points = np.array([[self.world.x_range[0], self.y - self.radius],
-                  [self.world.x_range[0], self.y + self.radius],
-                  [self.world.x_range[1], self.y + self.radius],
-                  [self.world.x_range[1], self.y + self.radius],
-                  [self.world.x_range[0], self.y - self.radius]])
+        # #make a square
+        # points = np.array([[self.world.x_range[0], self.y - self.radius],
+        #           [self.world.x_range[0], self.y + self.radius],
+        #           [self.world.x_range[1], self.y + self.radius],
+        #           [self.world.x_range[1], self.y + self.radius],
+        #           [self.world.x_range[0], self.y - self.radius]])
 
-        ax.plot(points[:, 0], points[:, 1], color=color)
+        # ax.plot(points[:, 0], points[:, 1], color=color)
         return ax
 
     def plot(self, ax, color):
@@ -148,4 +167,4 @@ class CylinderHorizontal:
         return self.extra_cost / ((self.get_euclid(x_sym, k) - self.radius) ** 2 + 0.01)
 
     def get_center_vector(self):
-        return np.array([self.x, self.y]).reshape(2,1)
+        return np.array([self.y, self.z]).reshape(2,1)

@@ -1,16 +1,10 @@
 import numpy as np
-def MovingObstacleConvert(move_obstacles, t, dt):
-    new_fixed_obs = []
+def MovingObstacleConvert(move_obstacles, dt):
     for obstacle in move_obstacles:
-        new_fixed = []
-        new_fixed.append(obstacle[0] + (t*dt*obstacle[2])) # X Position
-        new_fixed.append(obstacle[1] + (t*dt*obstacle[3])) # Y Position
-        new_fixed.append(obstacle[-1])                           # Radius 
-        new_fixed_obs.append(new_fixed)
+        obstacle.update(dt)
+    return
 
-    return new_fixed_obs
-
-def simulate(dt, T, x_init, plan_length, control_func, move_obstacles, path_rrt, waypoint_radius, num_states = 6, num_inputs = 3):
+def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles, path_rrt, waypoint_radius, num_states = 6, num_inputs = 3):
     ## Timesteps
     timesteps = np.arange(0, T, dt)
     print(f"Timesteps: {len(timesteps)}")
@@ -23,20 +17,23 @@ def simulate(dt, T, x_init, plan_length, control_func, move_obstacles, path_rrt,
     
     waypoint_idx = 0
     x_real[:, 0] = x_init
+    last_plan = None
+    target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0]
     for t in range(len(timesteps)):
 
         # Update Waypoint
         current_state = x_real[:, t]
         distance_2_next_wp = np.sqrt((current_state[0]-path_rrt.path_points[waypoint_idx][0])**2 + (current_state[1]-path_rrt.path_points[waypoint_idx][1])**2)
         if distance_2_next_wp < waypoint_radius and waypoint_idx < len(path_rrt.path_points)-1:
-
             waypoint_idx += 1
-     
-
-        target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0]
+            target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0]
+        
+        if waypoint_idx == len(path_rrt.path_points):
+            target_state = x_target
         # Compute the control input (and apply it)
-        move_obstacles_update = MovingObstacleConvert(move_obstacles, t, dt)
-        u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, move_obstacles_update)
+        MovingObstacleConvert(move_obstacles, dt)
+        u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, last_plan)
+        last_plan = x_all_out
 
         # Next x is the x in the second state
         x_real[:, t+1] = x_out

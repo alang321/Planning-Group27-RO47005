@@ -107,11 +107,12 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
 
 class World_3D:
-    def __init__(self, x_range, y_range, z_range, obstacles, obstacle_margin=0):
+    def __init__(self, x_range, y_range, z_range, obstacles, move_obstacles, obstacle_margin=0):
         self.x_range = x_range
         self.y_range = y_range
         self.z_range = z_range
         self.obstacles = obstacles
+        self.move_obstacles = move_obstacles
         self.obstacle_margin = obstacle_margin
 
         # initialize obstacles
@@ -196,7 +197,11 @@ class World_3D:
     def plot2d_ax(self, ax, path=None):
         # plot obstacles
         for obstacle in self.obstacles:
+            print()
             obstacle.plot_xy(ax, 'red')
+
+        for move_obstacle in self.move_obstacles:
+            move_obstacle.plot_xy(ax, 'red')      
 
         if path is not None:
             if path.valid:

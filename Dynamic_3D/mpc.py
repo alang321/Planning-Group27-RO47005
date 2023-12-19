@@ -1,13 +1,13 @@
 import numpy as np
 import casadi as ca
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, obstacles = [], move_obstacles = [],  num_states=6, num_inputs=3):
+def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, acc_constraints, last_plan, obstacles = [], move_obstacles = [],  num_states=6, num_inputs=3):
     # Create an optimization problem
     opti = ca.Opti()
     
     # State & Input matrix
-    Q = ca.DM.eye(3)
-    R = ca.DM.eye(3)
+    Q = np.array([[3, 0, 0, 0, 0, 0], [0, 3, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]])
+    R = np.eye(3)
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
@@ -23,12 +23,12 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         # State Constraints
         constraints += SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, acc_constraints)
         
-        # Vertical Static Obstacle Constraints 
+        # Static Obstacle Constraints 
         SOconstraints, SOcost = StaticObstacleConstraints(obstacles, x, k)
         constraints += SOconstraints
         cost += SOcost
 
-        # Horizontal Moving Obstacle Constraints
+        # Moving Obstacle Constraints
         DOconstraints, DOcost = DynamicObstacleConstraints(move_obstacles, x, k)
         constraints += DOconstraints
         cost += DOcost
@@ -37,17 +37,19 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
 
         # Cost function
-        e_k = x_target[:3] - x[:3, k]
+        e_k = x_target - x[:, k]
         cost += ca.mtimes(e_k.T, Q @ e_k) + ca.mtimes(u[:, k].T, R @ u[:, k])
     
     # Init Constraint
     constraints += [x[:, 0] == x_init] 
 
     # Cost last state
-    e_N = x_target[:3] - x[:3, -1]
+    e_N = x_target - x[:, N]
     cost += ca.mtimes(e_N.T, Q @ e_N)
     
-    
+    if last_plan is not None:
+        opti.set_initial(x, last_plan)
+
     # Define Problem in solver
     opti.minimize(cost)
     opti.subject_to(constraints)
@@ -81,7 +83,7 @@ def StaticObstacleConstraints(obstacles, x, k):
     cost = 0
     for obstacle in obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k)
+            cost += obstacle.get_cost(x, k)
     return constraints, cost
 
 def DynamicObstacleConstraints(move_obstacles, x, k):
@@ -89,7 +91,7 @@ def DynamicObstacleConstraints(move_obstacles, x, k):
     cost = 0
     for obstacle in move_obstacles:
             constraints += obstacle.get_constraint(x, k)
-            cost = obstacle.get_cost(x, k)
+            cost += obstacle.get_cost(x, k)
     return constraints, cost
 
 
