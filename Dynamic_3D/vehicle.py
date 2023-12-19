@@ -23,7 +23,7 @@ class vehicle_SS:
         # self.D_c = np.matrix([[0, 0],
         #             [0, 0]])
 
-        self.A = np.eye(4) + self.A_c * dt
+        self.A = np.eye(6) + self.A_c * dt
         self.B = self.B_c
         # self.C = self.C_c
         # self.D = self.D_c
