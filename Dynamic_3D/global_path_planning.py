@@ -219,7 +219,7 @@ class Node:
         self.f = None # Total cost, distance to start + heuristic
 
     def distance(self, other):
-        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2
+        return ((self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2)**0.5
 
     def distance_sq(self, other):
         return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2
