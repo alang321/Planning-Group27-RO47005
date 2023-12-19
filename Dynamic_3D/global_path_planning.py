@@ -159,6 +159,8 @@ class World_3D:
             ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
             ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
 
+        ax.set_aspect('equal', adjustable='box')
+
         ax.set_xlim(self.x_range)
         ax.set_ylim(self.y_range)
         ax.set_zlim(self.z_range)
@@ -190,7 +192,7 @@ class World_3D:
         ax.plot([x + radius, x + radius], [y, y], self.z_range, color=color)
         ax.plot([x - radius, x - radius], [y, y], self.z_range, color=color)
 
-
+class Cylinder:
 
 
 class Node:
