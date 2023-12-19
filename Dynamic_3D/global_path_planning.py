@@ -39,7 +39,7 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         # Find nearest valid node
         nearest_node = None
         nearest_dist_sq = None
-        dist_sq = [(node.position[0] - rnd_pos[0]) ** 2 + (node.position[1] - rnd_pos[1]) ** 2 for node in nodes]
+        dist_sq = [(node.position[0] - rnd_pos[0]) ** 2 + (node.position[1] - rnd_pos[1]) ** + (node.position[2] - rnd_pos[2]) ** 2 for node in nodes]
 
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
         for node, dist in sorted_nodes:
@@ -219,10 +219,10 @@ class Node:
         self.f = None # Total cost, distance to start + heuristic
 
     def distance(self, other):
-        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2
+        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2
 
     def distance_sq(self, other):
-        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2
+        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2
 
     def __eq__(self, other):
         return self.position == other.position
