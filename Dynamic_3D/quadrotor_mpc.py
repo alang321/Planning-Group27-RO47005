@@ -9,7 +9,18 @@ from helper_functions import path_ref, angle_difference, animate_trajectory, plo
 
 matplotlib.rcParams['animation.ffmpeg_path'] = "C:\\ffmpeg\\bin\\ffmpeg.exe"  # Replace this with the actual path
 
-def quadrotor_mpc_control(quadrotor, N, x_init, x_target, last_plan, obstacles = [], move_obstacles = [], num_states=4, num_inputs=2):
+def quadrotor_mpc_control(quadrotor,
+                           N, x_init, 
+                           x_target, 
+                           last_plan, 
+                           pos_constraints = [], 
+                           rpm_limit = 1000,  
+                           cost_weights = [120, 20, 0, 0, 0.1], # Cost Weights [pos, att, vel, ang_vel, inputs]
+                           obstacles = [], 
+                           move_obstacles = [], 
+                           num_states=12, 
+                           num_inputs=4):
+    
     # Create an optimization problem
     opti = ca.Opti()
 
@@ -22,27 +33,19 @@ def quadrotor_mpc_control(quadrotor, N, x_init, x_target, last_plan, obstacles =
     constraints = []
 
     # Motor Limit
-    rpm_lim = 1000
-    
-    # Weight constants
-    weights = {
-        "positions": 120,
-        "attitudes": 20,
-        "velocities": 0,
-        "ang_velocities": 0,
-        "inputs": 0.1
-    }
+    rad_limit = rpm_limit * 2 * np.pi / 60
+    input_limit = rad_limit ** 2
 
     # State weight matrix
     Q = ca.diagcat(
-        np.eye(3) * weights["positions"],
-        np.eye(3) * weights["attitudes"],
-        np.eye(3) * weights["velocities"],
-        np.eye(3) * weights["ang_velocities"]
+        np.eye(3) * cost_weights[0],
+        np.eye(3) * cost_weights[1],
+        np.eye(3) * cost_weights[2],
+        np.eye(3) * cost_weights[3]
     )
 
     # Input weight matrix
-    R = np.eye(num_inputs) * weights["inputs"]
+    R = np.eye(num_inputs) * cost_weights[4]
 
     #Loop through time steps
     for k in range(N):
@@ -57,11 +60,17 @@ def quadrotor_mpc_control(quadrotor, N, x_init, x_target, last_plan, obstacles =
         cost += DOcost
 
         # Dynamics Constraint
-        constraints += [x[:, k+1] == quadrotor.CalculateNextStep(x[:, k], u[:, k])]
+        constraints += [x[:, k+1] == quadrotor.calculate_next_step(x[:, k], u[:, k])]
 
         # Motor Limits
         for i in range(4):
-            opti.subject_to(opti.bounded(0, u[i, k], rpm_lim))
+            opti.subject_to(opti.bounded(0, u[i, k], input_limit))
+
+        # Position Limits
+        if pos_constraints != []:
+            opti.subject_to(opti.bounded(pos_constraints[0], x[0, k], pos_constraints[1]))
+            opti.subject_to(opti.bounded(pos_constraints[2], x[1, k], pos_constraints[3]))
+            opti.subject_to(opti.bounded(pos_constraints[4], x[2, k], pos_constraints[5]))
 
         # Cost function
         e_k = x_target - x[:, k]  # Position error
@@ -90,7 +99,21 @@ def quadrotor_mpc_control(quadrotor, N, x_init, x_target, last_plan, obstacles =
         return optimal_solution_u[:, 0], optimal_solution_x[:, 1], optimal_solution_x
     except RuntimeError:
         print("Solver failed to find a solution.")
-        return [0, 0, 0], x_init, None
+        
+        # If the solver fails, return a hover command
+        x_target = x_init
+        x_target[3:] = [0] * 9
+        return quadrotor_mpc_control(quadrotor,
+                           N, x_init, 
+                           x_target, 
+                           last_plan, 
+                           pos_constraints, 
+                           rpm_limit,  
+                           cost_weights,
+                           obstacles, 
+                           move_obstacles, 
+                           num_states, 
+                           num_inputs)
 
 def StaticObstacleConstraints(obstacles, x, k):
     constraints = []
@@ -107,12 +130,3 @@ def DynamicObstacleConstraints(move_obstacles, x, k):
             constraints += obstacle.get_constraint(x, k)
             cost += obstacle.get_cost(x, k)
     return constraints, cost
-
-# # Simulation Setup
-# dt = 0.01
-# x_init = np.zeros(12)
-# x_target = np.zeros(12)
-# x_target[0:3] = [0, 0, 5]
-
-# # Run simulation
-# results = quadrotor_mpc_control(Quadrotor(dt), 500, x_init, x_target, None, obstacles = [], move_obstacles = [], num_states=12, num_inputs=4)
