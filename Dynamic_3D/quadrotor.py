@@ -1,7 +1,8 @@
 import numpy as np
 import casadi as ca
+from vehicle import BaseVehicle
 
-class Quadrotor:
+class Quadrotor(BaseVehicle):
     def __init__(self, dt):
         # System Constants
         self.dt = dt
@@ -58,7 +59,7 @@ class Quadrotor:
         k_F = self.k_F
         return ca.vertcat(0, 0, k_F * (u[0] + u[1] + u[2] + u[3]))
 
-    def calculate_next_step(self, x, u):
+    def CalculateNextStep(self, x, u):
         R = self.return_rotation_matrix(x)
         F = self.return_F(u)
         tau = self.return_tau(u)

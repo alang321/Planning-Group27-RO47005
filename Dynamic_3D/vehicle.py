@@ -1,6 +1,12 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
-class vehicle_SS:
+class BaseVehicle(ABC):
+    @abstractmethod
+    def CalculateNextStep(self, x, u):
+        pass
+
+class vehicle_SS(BaseVehicle):
     def __init__(self, dt):
         # State space matrices
         self.A_c = np.matrix([[0, 0, 0, 1, 0, 0],
