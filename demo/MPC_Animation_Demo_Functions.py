@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import casadi as ca
+import operator
+from ipywidgets import IntProgress
+from IPython.display import display
 
 class vehicle_SS:
     def __init__(self, dt):
