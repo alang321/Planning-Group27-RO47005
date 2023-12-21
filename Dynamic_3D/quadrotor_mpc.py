@@ -19,7 +19,8 @@ def quadrotor_mpc_control(quadrotor,
                            obstacles = [], 
                            move_obstacles = [], 
                            num_states=12, 
-                           num_inputs=4):
+                           num_inputs=4,
+                           depth = 0):
     
     # Create an optimization problem
     opti = ca.Opti()
@@ -87,7 +88,7 @@ def quadrotor_mpc_control(quadrotor,
     if last_plan is not None:
         opti.set_initial(x, last_plan)
 
-    opti.solver('ipopt', {'ipopt.print_level': 5}) # Set the verbosity level (0-12, default is 5)
+    opti.solver('ipopt', {'ipopt.print_level': 0}) # Set the verbosity level (0-12, default is 5)
 
     # Run Solver
     try:
@@ -101,8 +102,12 @@ def quadrotor_mpc_control(quadrotor,
         print("Solver failed to find a solution.")
         
         # If the solver fails, return a hover command
-        x_target = x_init
-        x_target[3:] = [0] * 9
+        x_target = np.concatenate((x_init[:3], [0, 0, x_init[5]], np.zeros(6)))
+        depth += 1
+
+        if depth > 5:
+            print("I GIVE UP")
+            return [0, 0, 0, 0], x_init, None
         return quadrotor_mpc_control(quadrotor,
                            N, x_init, 
                            x_target, 
@@ -113,7 +118,8 @@ def quadrotor_mpc_control(quadrotor,
                            obstacles, 
                            move_obstacles, 
                            num_states, 
-                           num_inputs)
+                           num_inputs,
+                           depth)
 
 def StaticObstacleConstraints(obstacles, x, k):
     constraints = []

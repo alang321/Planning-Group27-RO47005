@@ -69,7 +69,7 @@ def animate_trajectory(positions, dt, size = 0.5, obstacles=None):
         set_axes_equal(ax)
 
     ani = animation.FuncAnimation(fig, animate, frames=len(x_positions), interval=dt * 1000)
-    ani.save('animation.mp4', writer='ffmpeg', fps=30)
+    ani.save('animation.mp4', writer='ffmpeg')
 
 def plot_control_inputs(inputs):
     # Control inputs
