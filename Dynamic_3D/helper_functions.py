@@ -14,7 +14,7 @@ def angle_difference(a, b):
     diff = ca.fmod(diff + np.pi, 2 * np.pi) - np.pi
     return diff
 
-def animate_trajectory(positions, dt, obstacles=None):
+def animate_trajectory(positions, dt, size = 0.5, obstacles=None):
     # Extract x, y, z coordinates and rotations
     x_positions, y_positions, z_positions, x_rot, y_rot, z_rot = positions
 
@@ -32,7 +32,6 @@ def animate_trajectory(positions, dt, obstacles=None):
         ax.set_ylim3d([origin[1] - radius, origin[1] + radius])
         ax.set_zlim3d([origin[2] - radius, origin[2] + radius])
 
-    size = 0.5
     vertices = size * np.array([[-1, -1, -0.25], [1, -1, -0.25], [1, 1, -0.25], [-1, 1, -0.25], [-1, -1, 0.25], [1, -1, 0.25], [1, 1, 0.25], [-1, 1, 0.25]])
     faces = [[0, 1, 5, 4], [7, 6, 2, 3], [0, 1, 2, 3], [7, 6, 5, 4], [0, 3, 7, 4], [1, 2, 6, 5]]
     facecolors = ['cyan', 'cyan', 'red', 'cyan', 'cyan', 'cyan']
@@ -60,8 +59,9 @@ def animate_trajectory(positions, dt, obstacles=None):
         ax.add_collection3d(Poly3DCollection(rotated_faces, facecolors=facecolors, linewidths=1, edgecolors='r', alpha=1))
 
         # Add obstacles
-        for obstacle in obstacles:
-            add_sphere(np.array([obstacle.x, obstacle.y, obstacle.z]), obstacle.radius)
+        if obstacles is not None:
+            for obstacle in obstacles:
+                add_sphere(np.array([obstacle.x, obstacle.y, obstacle.z]), obstacle.radius)
         
         ax.set_xlim([min(x_positions), max(x_positions)])
         ax.set_ylim([min(y_positions), max(y_positions)])
@@ -69,8 +69,7 @@ def animate_trajectory(positions, dt, obstacles=None):
         set_axes_equal(ax)
 
     ani = animation.FuncAnimation(fig, animate, frames=len(x_positions), interval=dt * 1000)
-    ani.save('animation.mp4', writer='ffmpeg')
-    plt.show()
+    ani.save('animation.mp4', writer='ffmpeg', fps=30)
 
 def plot_control_inputs(inputs):
     # Control inputs
