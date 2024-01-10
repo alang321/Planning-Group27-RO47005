@@ -7,8 +7,8 @@ def MovingObstacleConvert(move_obstacles, dt):
 def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles, path_rrt, waypoint_radius, num_states = 6, num_inputs = 3):
     ## Timesteps
     timesteps = np.arange(0, T, dt)
-    print(f"Timesteps: {len(timesteps)}")
 
+    # print(F" X_target: {x_target}")
     # Initialise the output arrays
     x_real = np.zeros((num_states, len(timesteps)+1))
     x_all = np.zeros((num_states, plan_length+1, len(timesteps)+1))
@@ -18,7 +18,7 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles,
     waypoint_idx = 0
     x_real[:, 0] = x_init
     last_plan = None
-    target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0]
+    target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for t in range(len(timesteps)):
 
         # Update Waypoint
@@ -26,7 +26,7 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles,
         distance_2_next_wp = np.sqrt((current_state[0]-path_rrt.path_points[waypoint_idx][0])**2 + (current_state[1]-path_rrt.path_points[waypoint_idx][1])**2)
         if distance_2_next_wp < waypoint_radius and waypoint_idx < len(path_rrt.path_points)-1:
             waypoint_idx += 1
-            target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0]
+            target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0, 0, 0, 0, 0, 0, 0]
         
         if waypoint_idx == len(path_rrt.path_points):
             target_state = x_target

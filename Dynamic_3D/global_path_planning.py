@@ -50,6 +50,7 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
             if not world_3d.is_line_colliding(*node.position, *rnd_pos):
                 nearest_node = node
                 nearest_dist_sq = dist
+                break
 
         if nearest_node is None:
             continue
