@@ -1,4 +1,5 @@
 import numpy as np
+import time
 def MovingObstacleConvert(move_obstacles, dt):
     for obstacle in move_obstacles:
         obstacle.update(dt)
@@ -18,7 +19,10 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles,
     waypoint_idx = 0
     x_real[:, 0] = x_init
     last_plan = None
+    last_input = None
     target_state = [path_rrt.path_points[waypoint_idx][0], path_rrt.path_points[waypoint_idx][1], path_rrt.path_points[waypoint_idx][2], 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # target_state = x_target
+    start_time = time.time()
     for t in range(len(timesteps)):
 
         # Update Waypoint
@@ -32,8 +36,10 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles,
             target_state = x_target
         # Compute the control input (and apply it)
         MovingObstacleConvert(move_obstacles, dt)
-        u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, last_plan)
+        u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, last_input, last_plan)
+        print(f"Progress: {t}/{len(timesteps)}")
         last_plan = x_all_out
+        last_input = u_out
 
         # Next x is the x in the second state
         x_real[:, t+1] = x_out
@@ -42,5 +48,8 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles,
         # Used input is the first input
         u_real[:, t] = u_out
         targets[:, t] = target_state 
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Average Computation time per step: {elapsed_time/len(timesteps)} seconds ")
 
     return x_real, u_real, x_all, timesteps, targets

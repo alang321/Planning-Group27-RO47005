@@ -1,15 +1,15 @@
 import numpy as np
 import casadi as ca
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, ang_constraints,  last_plan, obstacles = [], move_obstacles = [],  num_states=12, num_inputs=4):
+def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, ang_constraints, max_rad_per_s, last_input, last_plan, obstacles = [], move_obstacles = [],  num_states=12, num_inputs=4):
+
     # Create an optimization problem
     opti = ca.Opti()
     
-    # State & Input matrix
+    # State & Input weight matrix
     Q = np.zeros((12, 12))
     Q[0:3, 0:3] = 3*np.eye(3)
     R = np.eye(num_inputs) * 1e-15
-
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
@@ -23,7 +23,7 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     for k in range(N):
 
         # State Constraints
-        constraints += SetFixedDroneConstraints(x, u, k, pos_constraints, ang_constraints, vel_constraints)
+        constraints += SetFixedDroneConstraints(x, u, k, pos_constraints, ang_constraints, vel_constraints, max_rad_per_s)
         
         # Vertical Static Obstacle Constraints 
         SOconstraints, SOcost = StaticObstacleConstraints(obstacles, x, k+1)
@@ -36,28 +36,28 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         cost += DOcost
 
         # Dynamics Constraint
-        # constraints += [x[:, k+1] == vehicle.A @ x[:, k] + vehicle.B @ u[:, k]]
         constraints += [x[:, k+1] == vehicle.calculate_next_step(x[:, k], u[:, k])]
 
         # Cost function
-        
         e_k = x_target - x[:, k]
         cost += ca.mtimes(e_k.T, Q @ e_k) + ca.mtimes(u[:, k].T, R @ u[:, k])
     
-    # Init Constraint
-    constraints += [x[:, 0] == x_init] 
+    # Initial Constraint
+    constraints += [x[:, 0] == x_init]
+    # Terminal Constraint
+    constraints += [x[3:, N] == np.zeros((9, 1))] 
 
     # Cost last state
     e_N = x_target - x[:, N]
     cost += ca.mtimes(e_N.T, Q @ e_N)
     
+    # Warm start
     if last_plan is not None:
         opti.set_initial(x, last_plan)
 
     # Define Problem in solver
     opti.minimize(cost)
     opti.subject_to(constraints)
-
     opti.solver('ipopt', {'ipopt.print_level': 0})
 
     # Run Solver
@@ -73,14 +73,18 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         return [0, 0, 0, 0], x_init, None
 
 
-def SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, ang_constraints):
+def SetFixedDroneConstraints(x, u, k, pos_constraints, vel_constraints, ang_constraints, max_rad_per_s):
     # Set fixed states and acceleration constraints
     ang_constraints = np.deg2rad(ang_constraints)
     constraints = []
+
+    # State constraints
     constraints += [x[:, k] >= [pos_constraints[0], pos_constraints[2], pos_constraints[4], ang_constraints[0], ang_constraints[2], ang_constraints[4], vel_constraints[0], vel_constraints[2], vel_constraints[4], -100, -100, -100]]
     constraints += [x[:, k] <= [pos_constraints[1], pos_constraints[3], pos_constraints[5], ang_constraints[1], ang_constraints[3], ang_constraints[5], vel_constraints[1], vel_constraints[3], vel_constraints[5], 100, 100, 100]]
+    
+    # Control input constraints
     constraints += [u[:, k] >= [0, 0, 0, 0]]
-    constraints += [u[:, k] <= [2100**2, 2100**2, 2100**2, 2100**2]]
+    constraints += [u[:, k] <= [max_rad_per_s**2, max_rad_per_s**2, max_rad_per_s**2, max_rad_per_s**2]]
     return constraints
 
 def StaticObstacleConstraints(obstacles, x, k):

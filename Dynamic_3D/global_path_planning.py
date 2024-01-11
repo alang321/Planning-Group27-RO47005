@@ -201,8 +201,8 @@ class World_3D:
             print()
             obstacle.plot_xy(ax, 'red')
 
-        for move_obstacle in self.move_obstacles:
-            move_obstacle.plot_xy(ax, 'red')      
+        # for move_obstacle in self.move_obstacles:
+        #     move_obstacle.plot_xy(ax, 'red')      
 
         if path is not None:
             if path.valid:
