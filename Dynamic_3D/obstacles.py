@@ -126,33 +126,35 @@ class CylinderHorizontal:
         y_circ = y + radius * np.cos(theta)
         z_circ = z + radius * np.sin(theta)
 
+        x = np.ones(y_circ.shape) * x
+
         ax.plot(x, y_circ, z_circ, color=color)
 
         return ax
 
     def plot_xy(self, ax, color):
-        # #make a square
-        # points = np.array([[self.world.x_range[0], self.y - self.radius],
-        #           [self.world.x_range[0], self.y + self.radius],
-        #           [self.world.x_range[1], self.y + self.radius],
-        #           [self.world.x_range[1], self.y + self.radius],
-        #           [self.world.x_range[0], self.y - self.radius]])
+        #make a square
+        points = np.array([[self.world.x_range[0], self.y - self.radius],
+                   [self.world.x_range[0], self.y + self.radius],
+                   [self.world.x_range[1], self.y + self.radius],
+                   [self.world.x_range[1], self.y + self.radius],
+                   [self.world.x_range[0], self.y - self.radius]])
 
-        # ax.plot(points[:, 0], points[:, 1], color=color)
+        ax.plot(points[:, 0], points[:, 1], color=color)
         return ax
 
     def plot(self, ax, color):
         #plot a cylinder from lines and circles in 3d
         #plot the circles
-        self.plot_circle_yz(ax, self.x, self.y, self.world.z_range[0], self.radius, color)
-        self.plot_circle_yz(ax, self.x, self.y, self.world.z_range[1], self.radius, color)
+        self.plot_circle_yz(ax, self.world.x_range[0], self.y, self.z, self.radius, color)
+        self.plot_circle_yz(ax, self.world.x_range[1], self.y, self.z, self.radius, color)
 
         #plot the center line
         #ax.plot([x, x], [y, y], self.world_3d.z_range)
         ax.plot(self.world.x_range, [self.y, self.y], [self.z + self.radius, self.z + self.radius], color=color)
-        ax.plot(self.world.x_range, [self.y, self.y], [self.z - self.radius, self.z - self.radius], self.world.z_range, color=color)
-        ax.plot(self.world.x_range, [self.y + self.radius, self.y + self.radius], [self.z, self.z], self.world.z_range, color=color)
-        ax.plot(self.world.x_range, [self.y - self.radius, self.y - self.radius], [self.z, self.z], self.world.z_range, color=color)
+        ax.plot(self.world.x_range, [self.y, self.y], [self.z - self.radius, self.z - self.radius], color=color)
+        ax.plot(self.world.x_range, [self.y + self.radius, self.y + self.radius], [self.z, self.z], color=color)
+        ax.plot(self.world.x_range, [self.y - self.radius, self.y - self.radius], [self.z, self.z], color=color)
     
     def get_euclid(self, x_sym, k):
         return ca.norm_2(x_sym[1:3, k] - self.get_center_vector())
