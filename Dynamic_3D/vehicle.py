@@ -44,7 +44,7 @@ class Quadrotor:
         self.gravity = -9.81  # m / s^2
 
         # Quadrotor Constants
-        self.k_F = 1.0
+        self.k_F = 0.1
         self.L = 0.2
         self.k_M = 0.1
 
