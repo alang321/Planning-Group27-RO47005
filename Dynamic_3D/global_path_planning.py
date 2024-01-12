@@ -74,6 +74,10 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
                 nodes[idx].parent = new_node
                 nodes[idx].g = new_node.g + dist
 
+            if node.g + dist < new_node.g:
+                new_node.parent = node
+                new_node.g = node.g + dist
+
         nodes.append(new_node)
 
         dist_sq = new_node.distance_sq(goal_node)
