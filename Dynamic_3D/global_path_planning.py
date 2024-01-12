@@ -156,7 +156,7 @@ class World_3D:
         return pos_x >= self.x_range[0] and pos_x <= self.x_range[1] and pos_y >= self.y_range[0] and pos_y <= self.y_range[1]
 
 
-    def plot(self, path=None, elev=None, azim=None, ortho=False):
+    def plot3d(self, path=None, elev=None, azim=None, ortho=False):
         # plot the 3d cylinder obstacles and the path from the top side and front
         # x = 0, y = 1, z = 2
         # for direction in range(3):
@@ -165,26 +165,7 @@ class World_3D:
 
         self.plot3d_ax(ax, elev, azim, ortho, path)
 
-
-    def plot2d(self, path=None):
-        self.plot(path, elev=90, azim=0, ortho=True)
-
-    def plot2d_ax(self, ax, path=None):
-        # plot obstacles
-        for obstacle in self.obstacles:
-            print()
-            obstacle.plot_xy(ax, 'red')
-
-        # for move_obstacle in self.move_obstacles:
-        #     move_obstacle.plot_xy(ax, 'red')      
-
-        if path is not None:
-            if path.valid:
-                path_points = np.array(path.path_points)
-                ax.plot(path_points[:, 0], path_points[:, 1], color='blue')
-                # plot start and end point
-                ax.scatter(path.start[0], path.start[1], color='green')
-                ax.scatter(path.goal[0], path.goal[1], color='green')
+        plt.show()
 
     def plot3d_ax(self, ax, elev=None, azim=None, ortho=False, path=None):
 
@@ -194,7 +175,7 @@ class World_3D:
 
         # plot obstacles
         for obstacle in self.obstacles:
-            obstacle.plot(ax, 'red')
+            obstacle.plot(ax)
 
         if path is not None:
             if path.valid:
@@ -219,6 +200,76 @@ class World_3D:
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+
+    def plot2d_xy(self, path=None, states=None):
+        self.plot2d_xy_ax(plt.gca(), path, states)
+        plt.show()
+
+    def plot2d_xy_ax(self, ax, path=None, states=None):
+        # plot obstacles
+        for obstacle in self.obstacles:
+            print()
+            obstacle.plot_xy(ax)
+
+        # for move_obstacle in self.move_obstacles:
+        #     move_obstacle.plot_xy(ax, 'red')
+
+        if path is not None:
+            if path.valid:
+                path_points = np.array(path.path_points)
+                ax.plot(path_points[:, 1], path_points[:, 0], color='blue', linestyle='--', label="RRT* Path")
+                ax.scatter(path_points[:-1, 1], path_points[:-1, 0], s=20, color='blue')
+                # plot start and end point
+                ax.scatter(path.start[1], path.start[0], color='green', label="Start")
+                ax.scatter(path.goal[1], path.goal[0], color='red', marker='x', s=50, label="Goal")
+
+        if states is not None:
+            ax.plot(states[1], states[0], color='red', label="Trajectory")
+            ax.scatter(states[1], states[0], s=20, color='red')
+
+        ax.set_xlim(self.y_range)
+        ax.set_ylim(self.x_range)
+        ax.set_xlabel('Y')
+        ax.set_ylabel('X')
+        ax.legend()
+
+        #equal axis scale
+        ax.set_aspect('equal', adjustable='box')
+
+    def plot2d_yz(self, path=None, states=None):
+        self.plot2d_yz_ax(plt.gca(), path, states)
+        plt.show()
+
+    def plot2d_yz_ax(self, ax, path=None, states=None):
+        # plot obstacles
+        for obstacle in self.obstacles:
+            print()
+            obstacle.plot_yz(ax)
+
+        # for move_obstacle in self.move_obstacles:
+        #     move_obstacle.plot_xy(ax, 'red')
+
+        if path is not None:
+            if path.valid:
+                path_points = np.array(path.path_points)
+                ax.plot(path_points[:, 1], path_points[:, 2], color='blue', linestyle='--', label="RRT* Path")
+                ax.scatter(path_points[:-1, 1], path_points[:-1, 2], s=20, color='blue')
+                # plot start and end point
+                ax.scatter(path.start[1], path.start[2], color='green', label="Start")
+                ax.scatter(path.goal[1], path.goal[2], color='red', marker='x', s=50, label="Goal")
+
+        if states is not None:
+            ax.plot(states[1], states[2], color='red', label="Trajectory")
+            ax.scatter(states[1], states[2], s=20, color='red')
+
+        ax.set_xlim(self.y_range)
+        ax.set_ylim(self.z_range)
+        ax.set_xlabel('Y')
+        ax.set_ylabel('Z')
+        ax.legend()
+
+        #equal axis scale
+        ax.set_aspect('equal', adjustable='box')
 
 
 class Node:

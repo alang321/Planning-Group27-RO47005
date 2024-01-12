@@ -2,6 +2,7 @@ import numpy as np
 import casadi as ca
 import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.patches as patches
 
 def init_obstacles(V_obstacles, V_move_obstacles, H_obstacles, H_move_obstacles, static_cost, dynamic_cost):
     obstacles = []
@@ -15,20 +16,21 @@ def init_obstacles(V_obstacles, V_move_obstacles, H_obstacles, H_move_obstacles,
         obstacles.append(CylinderHorizontal(H_obstacle[0], H_obstacle[1], H_obstacle[2], static_cost))
 
     for V_move_obstacle in V_move_obstacles:
-        obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4]))
+        obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4], color='cyan'))
 
     for H_move_obstacle in H_move_obstacles:
-        obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4]))
+        obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4], color='cyan'))
 
     return obstacles
 
 class CylinderVertical:
-    def __init__(self, x, y, radius, extra_cost, velocity=None):
+    def __init__(self, x, y, radius, extra_cost, velocity=None, color='grey'):
         self.x = x
         self.y = y
         self.radius = radius
         self.velocity = velocity
         self.extra_cost = extra_cost
+        self.color = color
 
         self.world = None
 
@@ -46,7 +48,8 @@ class CylinderVertical:
             self.x += self.velocity[0] * dt
             self.y += self.velocity[1] * dt
 
-    def plot_circle_xy(self, ax, x, y, z, radius, color):
+    def plot_circle_xy(self, ax, x, y, z, radius):
+        color = self.color
         #this function plots only a circle in 3d
         theta = np.linspace(0, 2 * np.pi, 201)
         x_circ = x + radius * np.cos(theta)
@@ -56,20 +59,30 @@ class CylinderVertical:
 
         return ax
 
-    def plot_xy(self, ax, color):
-        #this function plots only a circle in 3d
-        theta = np.linspace(0, 2 * np.pi, 201)
-        x_circ = self.x + self.radius * np.cos(theta)
-        y_circ = self.y + self.radius * np.sin(theta)
+    def plot_xy(self, ax):
+        color = self.color
+        circle = plt.Circle((self.y, self.x), self.radius, fill=True, facecolor=color, alpha=0.5, edgecolor='black')
+        circle2 = plt.Circle((self.y, self.x), self.radius, fill=False, edgecolor='black')
 
-        ax.plot(x_circ, y_circ, color=color)
+        ax.add_patch(circle)
+        ax.add_patch(circle2)
+
         return ax
 
-    def plot(self, ax, color):
+    def plot_yz(self, ax):
+        color = self.color
+        rect = patches.Rectangle((self.y - self.radius, self.world.z_range[0]), 2 * self.radius, self.world.z_range[1] - self.world.z_range[0], facecolor=color, alpha=0.5)
+        rect2 = patches.Rectangle((self.y - self.radius, self.world.z_range[0]), 2 * self.radius, self.world.z_range[1] - self.world.z_range[0], fill=False, edgecolor='black')
+        ax.add_patch(rect)
+        ax.add_patch(rect2)
+        return ax
+
+    def plot(self, ax):
+        color = self.color
         #plot a cylinder from lines and circles in 3d
         #plot the circles
-        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[0], self.radius, color)
-        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[1], self.radius, color)
+        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[0], self.radius)
+        self.plot_circle_xy(ax, self.x, self.y, self.world.z_range[1], self.radius)
 
         #plot the center line
         #ax.plot([x, x], [y, y], self.world_3d.z_range)
@@ -97,12 +110,13 @@ class CylinderVertical:
 
 
 class CylinderHorizontal:
-    def __init__(self, y, z, radius, extra_cost, velocity=None):
+    def __init__(self, y, z, radius, extra_cost, velocity=None, color='grey'):
         self.y = y
         self.z = z
         self.radius = radius
         self.velocity = velocity
         self.extra_cost = extra_cost
+        self.color = color
 
         self.world = None
 
@@ -120,7 +134,8 @@ class CylinderHorizontal:
             self.y += self.velocity[0] * dt
             self.z += self.velocity[1] * dt
 
-    def plot_circle_yz(self, ax, x, y, z, radius, color):
+    def plot_circle_yz(self, ax, x, y, z, radius):
+        color = self.color
         #this function plots only a circle in 3d
         theta = np.linspace(0, 2 * np.pi, 201)
         y_circ = y + radius * np.cos(theta)
@@ -132,22 +147,30 @@ class CylinderHorizontal:
 
         return ax
 
-    def plot_xy(self, ax, color):
-        #make a square
-        points = np.array([[self.world.x_range[0], self.y - self.radius],
-                   [self.world.x_range[0], self.y + self.radius],
-                   [self.world.x_range[1], self.y + self.radius],
-                   [self.world.x_range[1], self.y + self.radius],
-                   [self.world.x_range[0], self.y - self.radius]])
-
-        ax.plot(points[:, 0], points[:, 1], color=color)
+    def plot_xy(self, ax):
+        color = self.color
+        rect = patches.Rectangle((self.y - self.radius, self.world.x_range[0]), 2 * self.radius, self.world.x_range[1] - self.world.x_range[0], facecolor=color, alpha=0.5)
+        rect2 = patches.Rectangle((self.y - self.radius, self.world.x_range[0]), 2 * self.radius, self.world.x_range[1] - self.world.x_range[0], fill=False, edgecolor='black')
+        ax.add_patch(rect)
+        ax.add_patch(rect2)
         return ax
 
-    def plot(self, ax, color):
+    def plot_yz(self, ax):
+        color = self.color
+        circle = plt.Circle((self.y, self.z), self.radius, fill=True, facecolor=color, alpha=0.5, edgecolor='black')
+        circle2 = plt.Circle((self.y, self.z), self.radius, fill=False, edgecolor='black')
+
+        ax.add_patch(circle)
+        ax.add_patch(circle2)
+
+        return ax
+
+    def plot(self, ax):
+        color = self.color
         #plot a cylinder from lines and circles in 3d
         #plot the circles
-        self.plot_circle_yz(ax, self.world.x_range[0], self.y, self.z, self.radius, color)
-        self.plot_circle_yz(ax, self.world.x_range[1], self.y, self.z, self.radius, color)
+        self.plot_circle_yz(ax, self.world.x_range[0], self.y, self.z, self.radius)
+        self.plot_circle_yz(ax, self.world.x_range[1], self.y, self.z, self.radius)
 
         #plot the center line
         #ax.plot([x, x], [y, y], self.world_3d.z_range)
