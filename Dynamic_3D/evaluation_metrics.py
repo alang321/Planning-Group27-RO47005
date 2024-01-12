@@ -69,17 +69,17 @@ def plot_trajectory_smoothness(velocities, orientation_rates, num_timesteps, dur
 
 # 2. Control Effort
 def get_control_effort(control_inputs):
-    total_control_per_step = []
+    total_control_per_step = np.zeros(len(control_inputs))
     for i in range(len(control_inputs)):
         total_control_per_step[i] = np.sum(control_inputs[i])
     return total_control_per_step
 
 def plot_control_effort(control_inputs, duration_sec, num_timesteps):
     total_control_per_step = get_control_effort(control_inputs)
-    control_input_1 = control_inputs[0]
-    control_input_2 = control_inputs[1]
-    control_input_3 = control_inputs[2]
-    control_input_4 = control_inputs[3]
+    control_input_1 = control_inputs[:,0]
+    control_input_2 = control_inputs[:,1]
+    control_input_3 = control_inputs[:,2]
+    control_input_4 = control_inputs[:,3]
     time = np.linspace(0, duration_sec, num_timesteps)
     plt.figure(figsize=(10, 8))
 
