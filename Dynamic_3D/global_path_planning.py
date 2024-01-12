@@ -7,7 +7,7 @@ import operator
 from mpl_toolkits.mplot3d import art3d
 
 
-def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True):
+def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True, plot=False):
     # Initialize start and goal node
     start_node = Node(None, start)
     goal_node = Node(None, goal)
@@ -37,16 +37,20 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
         # Find nearest valid node
         nearest_node = None
         nearest_dist_sq = None
-        dist_sq = [(node.position[0] - rnd_pos[0]) ** 2 + (node.position[1] - rnd_pos[1]) ** 2 + (node.position[2] - rnd_pos[2]) ** 2 for node in nodes]
+
+        dist_sq = [(node.position[0] - rnd_pos[0]) ** 2 + (node.position[1] - rnd_pos[1]) ** 2 + (
+                    node.position[2] - rnd_pos[2]) ** 2 for node in nodes]
 
         sorted_nodes = [(x, dist) for dist, x in sorted(zip(dist_sq, nodes), key=lambda pair: pair[0])]
+
         for node, dist in sorted_nodes:
-            #plot the line to the nearest node
-            #path_points = np.array([node.position, rnd_pos])
-            #is_colliding = world_3d.is_line_colliding(*node.position, *rnd_pos)
-            #path = Path(path_points, node.position, rnd_pos, str(is_colliding), world_3d, valid=True)
-            #world_3d.plot2d(path)
-            #print(is_colliding)
+            # plot the line to the nearest node
+            # path_points = np.array([node.position, rnd_pos])
+            # is_colliding = world_3d.is_line_colliding(*node.position, *rnd_pos)
+            # path = Path(path_points, node.position, rnd_pos, str(is_colliding), world_3d, valid=True)
+            # world_3d.plot2d(path)
+            # print(is_colliding)
+
             if not world_3d.is_line_colliding(*node.position, *rnd_pos):
                 nearest_node = node
                 nearest_dist_sq = dist
@@ -60,7 +64,8 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
         # check if nearby nodes are close to the new node
         for idx, node in enumerate(nodes):
-            dist_sq = node.distance_sq(new_node)
+            dist_sq = (node.position[0] - new_node.position[0]) ** 2 + (
+                        node.position[1] - new_node.position[1]) ** 2 + (node.position[2] - new_node.position[2]) ** 2
             if dist_sq > radius_sq:
                 continue
 
@@ -74,6 +79,11 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
                 nodes[idx].parent = new_node
                 nodes[idx].g = new_node.g + dist
 
+            # check if node is closer path to the new node
+            if node.g + dist < new_node.g:
+                new_node.parent = node
+                new_node.g = node.g + dist
+
         nodes.append(new_node)
 
         dist_sq = new_node.distance_sq(goal_node)
@@ -86,12 +96,49 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
                 success = True
 
+    if plot:
+        world_3d.plot2d_ax(plt.gca())
+
+        plt.xlabel('X-axis')
+        plt.ylabel('Y-axis')
+
+        # plot the many paths
+
+        for node in nodes:
+            if node.parent is not None:
+                path_points = np.array([node.position, node.parent.position])
+                plt.plot(path_points[:, 0], path_points[:, 1], color='grey', zorder=5, linestyle='--', linewidth=.8)
+                plt.scatter(node.position[0], node.position[1], color='grey', s=5, zorder=10)
+
+        # plot the goal path
+        current = goal_node
+        while current is not None:
+            if current.parent is None:
+                break
+            path_points = np.array([current.position, current.parent.position])
+            plt.plot(path_points[:, 0], path_points[:, 1], color='red', zorder=20, linewidth=1.5)
+            plt.scatter(current.position[0], current.position[1], color='red', zorder=30, s=10)
+            current = current.parent
+
+        plt.scatter(start[0], start[1], color='red', zorder=40, s=50, marker='x', label='Start')
+        plt.scatter(goal[0], goal[1], color='red', zorder=40, s=70, marker='*', label='Goal')
+
+        # legend = plt.legend()
+
+        # frame = legend.get_frame()
+        # frame.set_facecolor('white')
+
+        # make axis same scale
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.show()
+
     if success:
         print("Goal found")
-        #reconstruct the path
+        # reconstruct the path
         path = []
         current = goal_node
         i = 0
+
         while current is not None:
             path.append(current.position)
             current = current.parent
@@ -99,12 +146,11 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
             if i > max_iter:
                 print("Infinite loop")
                 return Path(None, start, goal, "RRT*", world_3d, False)
+
         return Path(path[::-1], start, goal, "RRT*", world_3d, success)
     else:
         print("No path found")
         return Path(None, start, goal, "RRT*", world_3d, success)
-
-
 
 
 class World_3D:
@@ -126,18 +172,30 @@ class World_3D:
                 return True
         return False
 
-    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, point_spacing=0.5):
-        #create points along the line with given spacing
+    def is_line_colliding(self, x0, y0, z0, x1, y1, z1, plot=False, i=0, point_spacing=0.5):
+        # create points along the line with given spacing
         dist = ((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2) ** 0.5
         num_points = int(dist / point_spacing)
         point_fractions = np.linspace(0, 1, num_points, endpoint=True)
+
+        if plot:
+            self.plot2d_ax(plt.gca())
+            plt.title(str(i))
 
         for fraction in point_fractions:
             x = x0 + fraction * (x1 - x0)
             y = y0 + fraction * (y1 - y0)
             z = z0 + fraction * (z1 - z0)
+
+            if plot:
+                plt.scatter(x, y, color='red')
+
             if self.is_colliding((x, y, z)):
+                if plot:
+                    plt.scatter(x, y, color='blue')
                 return True
+
+        return False
 
     def get_random_point(self):
         x = np.random.uniform(self.x_range[0], self.x_range[1])
@@ -146,8 +204,8 @@ class World_3D:
         return x, y, z
 
     def is_in_constraints(self, pos_x, pos_y):
-        return pos_x >= self.x_range[0] and pos_x <= self.x_range[1] and pos_y >= self.y_range[0] and pos_y <= self.y_range[1]
-
+        return pos_x >= self.x_range[0] and pos_x <= self.x_range[1] and pos_y >= self.y_range[0] and pos_y <= \
+            self.y_range[1]
 
     def plot(self, path=None, elev=None, azim=None, ortho=False):
         # plot the 3d cylinder obstacles and the path from the top side and front
@@ -160,7 +218,7 @@ class World_3D:
         if elev is not None and azim is not None:
             ax.view_init(elev=elev, azim=azim)
 
-        #plot obstacles
+        # plot obstacles
         for obstacle in self.obstacles:
             obstacle.plot(ax, 'red')
 
@@ -169,13 +227,13 @@ class World_3D:
                 path_points = np.array(path.path_points)
                 ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
 
-                #plot path points in blue
+                # plot path points in blue
                 ax.scatter(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
 
-                #plot start and end point
+                # plot start and end point
                 ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
                 ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
-        
+
         # Set the origin (0, 0, 0) point at the center of the plot
         ax.plot([0], [0], [0], marker='o', markersize=5, color='black')  # Plot a point at the origin
 
@@ -199,10 +257,21 @@ class World_3D:
         # plot obstacles
         for obstacle in self.obstacles:
             print()
-            obstacle.plot_xy(ax, 'red')
+            obstacle.plot_xy(ax, 'black')
 
-        # for move_obstacle in self.move_obstacles:
-        #     move_obstacle.plot_xy(ax, 'red')      
+        if path is not None:
+            if path.valid:
+                path_points = np.array(path.path_points)
+                ax.plot(path_points[:, 0], path_points[:, 1], color='blue')
+                # plot start and end point
+                ax.scatter(path.start[0], path.start[1], color='green')
+                ax.scatter(path.goal[0], path.goal[1], color='green')
+
+    def plot2d_ax_side(self, ax, path=None):
+        # plot obstacles
+        for obstacle in self.obstacles:
+            print()
+            obstacle.plot(ax, 'black')
 
         if path is not None:
             if path.valid:
@@ -213,24 +282,22 @@ class World_3D:
                 ax.scatter(path.goal[0], path.goal[1], color='green')
 
 
-
-
-
-
 class Node:
     def __init__(self, parent, position):
         self.parent = parent
         self.position = position
 
-        self.g = None # Distance to start node
-        self.h = None # Heuristic
-        self.f = None # Total cost, distance to start + heuristic
+        self.g = None  # Distance to start node
+        self.h = None  # Heuristic
+        self.f = None  # Total cost, distance to start + heuristic
 
     def distance(self, other):
-        return ((self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2)**0.5
+        return ((self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (
+                    self.position[2] - other.position[2]) ** 2) ** 0.5
 
     def distance_sq(self, other):
-        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (self.position[2] - other.position[2]) ** 2
+        return (self.position[0] - other.position[0]) ** 2 + (self.position[1] - other.position[1]) ** 2 + (
+                    self.position[2] - other.position[2]) ** 2
 
     def __eq__(self, other):
         return self.position == other.position
@@ -253,6 +320,7 @@ class Node:
     def __str__(self):
         return f'Node: {self.position}, g: {self.g}'
 
+
 class Path:
     def __init__(self, path_points, start, goal, name, world_3d, valid=True):
         self.name = name
@@ -264,18 +332,20 @@ class Path:
         self.path_points = path_points
 
     def get_subdivided_path(self, max_length):
-        #subdivide the path into num_points points
+        # subdivide the path into num_points points
         if self.path_points is None:
             return None
 
         if len(self.path_points) < 2:
             return None
 
-        #subdivide the path
+        # subdivide the path
         path_points = []
         for i in range(len(self.path_points) - 1):
             path_points.append(self.path_points[i])
-            dist_sq = ((self.path_points[i][0] - self.path_points[i + 1][0]) ** 2 + (self.path_points[i][1] - self.path_points[i + 1][1]) ** 2 + (self.path_points[i][2] - self.path_points[i + 1][2]) ** 2)
+            dist_sq = ((self.path_points[i][0] - self.path_points[i + 1][0]) ** 2 + (
+                        self.path_points[i][1] - self.path_points[i + 1][1]) ** 2 + (
+                                   self.path_points[i][2] - self.path_points[i + 1][2]) ** 2)
 
             num_extra_points = int(dist_sq ** 0.5 / max_length) + 1
 
@@ -294,4 +364,4 @@ class Path:
 
 
 
-            
+
