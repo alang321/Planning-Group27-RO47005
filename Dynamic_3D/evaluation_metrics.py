@@ -6,16 +6,21 @@ import matplotlib.pyplot as plt
 # 1. Trajectory Smoothness
 def get_trajectory_smoothness(velocities, dt):
     # calculate acceleration
-    accelerations = np.diff(velocities)/dt
+    accelerations = np.diff(velocities, axis=0) / dt
     # calculate jerk
-    jerks = np.diff(accelerations)/dt
+    jerks = np.diff(accelerations, axis=0) / dt
+
+    # Print shapes for verification
+    print("accelerations:", accelerations.shape)
+    print("jerks:", jerks.shape)
+
     return accelerations, jerks
 
 def plot_trajectory_smoothness(velocities, orientation_rates, num_timesteps, duration_sec, dt):
     position_accelerations, position_jerks = get_trajectory_smoothness(velocities, dt)
     orientation_accelerations, orientation_jerks = get_trajectory_smoothness(orientation_rates, dt)
-    time = np.linspace(0, duration_sec, num_timesteps) #TODO: this wouldn't be in seconds?
-
+    time = np.linspace(0, duration_sec, num_timesteps)
+    print("time shape:", time.shape)
     # Plotting
     plt.figure(figsize=(12, 6))
 
@@ -122,8 +127,9 @@ def plot_time_to_goal(waypoints, drone_positions, goal_time, cylinder_paths):
             plt.text(waypoint[0], waypoint[1], f'{goal_time}', fontsize=12, ha='right', va='bottom')
 
     # Plot Cylinder Paths
-    for path in cylinder_paths:
-        plt.plot(path[:, 0], path[:, 1], linestyle='--', color='red', label='Cylinder Path')
+    if cylinder_paths:
+        for path in cylinder_paths:
+            plt.plot(path[:, 0], path[:, 1], linestyle='--', color='red', label='Cylinder Path')
 
     plt.title('Drone Path with Waypoints and Cylinder Paths')
     plt.xlabel('X-coordinate')
