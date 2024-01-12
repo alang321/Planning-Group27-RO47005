@@ -1,7 +1,7 @@
 import numpy as np
 import casadi as ca
 
-def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, ang_constraints, max_rad_per_s, last_input, last_plan, obstacles = [], move_obstacles = [],  num_states=12, num_inputs=4):
+def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, ang_constraints, max_rad_per_s, last_plan, obstacles = [],  num_states=12, num_inputs=4):
 
     # Create an optimization problem
     opti = ca.Opti()
@@ -29,11 +29,6 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         SOconstraints, SOcost = StaticObstacleConstraints(obstacles, x, k+1)
         constraints += SOconstraints
         cost += SOcost
-
-        # Horizontal Moving Obstacle Constraints
-        DOconstraints, DOcost = DynamicObstacleConstraints(move_obstacles, x, k+1)
-        constraints += DOconstraints
-        cost += DOcost
 
         # Dynamics Constraint
         constraints += [x[:, k+1] == vehicle.calculate_next_step(x[:, k], u[:, k])]
@@ -91,14 +86,6 @@ def StaticObstacleConstraints(obstacles, x, k):
     constraints = []
     cost = 0
     for obstacle in obstacles:
-            constraints += obstacle.get_constraint(x, k)
-            cost += obstacle.get_cost(x, k)
-    return constraints, cost
-
-def DynamicObstacleConstraints(move_obstacles, x, k):
-    constraints = []
-    cost = 0
-    for obstacle in move_obstacles:
             constraints += obstacle.get_constraint(x, k)
             cost += obstacle.get_cost(x, k)
     return constraints, cost

@@ -1,11 +1,7 @@
 import numpy as np
 import time
-def MovingObstacleConvert(move_obstacles, dt):
-    for obstacle in move_obstacles:
-        obstacle.update(dt)
-    return
 
-def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles, path_rrt, waypoint_radius, num_states = 6, num_inputs = 3):
+def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt, waypoint_radius, num_states = 6, num_inputs = 3):
     ## Timesteps
     timesteps = np.arange(0, T, dt)
 
@@ -35,7 +31,7 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, move_obstacles,
         if waypoint_idx == len(path_rrt.path_points):
             target_state = x_target
         # Compute the control input (and apply it)
-        MovingObstacleConvert(move_obstacles, dt)
+        world.update(dt)
         u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, last_input, last_plan)
         print(f"Progress: {t}/{len(timesteps)}")
         last_plan = x_all_out

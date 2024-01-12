@@ -15,12 +15,12 @@ def init_obstacles(V_obstacles, V_move_obstacles, H_obstacles, H_move_obstacles,
         obstacles.append(CylinderHorizontal(H_obstacle[0], H_obstacle[1], H_obstacle[2], static_cost))
 
     for V_move_obstacle in V_move_obstacles:
-        move_obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4]))
+        obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4]))
 
     for H_move_obstacle in H_move_obstacles:
-        move_obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4]))
+        obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4]))
 
-    return obstacles, move_obstacles
+    return obstacles
 
 class CylinderVertical:
     def __init__(self, x, y, radius, extra_cost, velocity=None):

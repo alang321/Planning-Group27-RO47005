@@ -112,17 +112,20 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True)
 
 
 class World_3D:
-    def __init__(self, x_range, y_range, z_range, obstacles, move_obstacles, obstacle_margin=0):
+    def __init__(self, x_range, y_range, z_range, obstacles, obstacle_margin=0):
         self.x_range = x_range
         self.y_range = y_range
         self.z_range = z_range
         self.obstacles = obstacles
-        self.move_obstacles = move_obstacles
         self.obstacle_margin = obstacle_margin
 
         # initialize obstacles
         for obstacle in self.obstacles:
             obstacle.init_world(self)
+
+    def update(self, dt):
+        for obstacle in self.obstacles:
+            obstacle.update(dt)
 
     def is_colliding(self, point):
         for obstacle in self.obstacles:
@@ -160,41 +163,8 @@ class World_3D:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        # Set the elevation and azimuth for the top-down view
-        if elev is not None and azim is not None:
-            ax.view_init(elev=elev, azim=azim)
+        self.plot3d_ax(ax, elev, azim, ortho, path)
 
-        #plot obstacles
-        for obstacle in self.obstacles:
-            obstacle.plot(ax, 'red')
-
-        if path is not None:
-            if path.valid:
-                path_points = np.array(path.path_points)
-                ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
-
-                #plot path points in blue
-                ax.scatter(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
-
-                #plot start and end point
-                ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
-                ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
-        
-        # Set the origin (0, 0, 0) point at the center of the plot
-        ax.plot([0], [0], [0], marker='o', markersize=5, color='black')  # Plot a point at the origin
-
-        ax.set_aspect('equal', adjustable='box')
-
-        if ortho:
-            ax.set_proj_type('ortho')
-
-        ax.set_xlim(self.x_range)
-        ax.set_ylim(self.y_range)
-        ax.set_zlim(self.z_range)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        plt.show()
 
     def plot2d(self, path=None):
         self.plot(path, elev=90, azim=0, ortho=True)
@@ -216,9 +186,39 @@ class World_3D:
                 ax.scatter(path.start[0], path.start[1], color='green')
                 ax.scatter(path.goal[0], path.goal[1], color='green')
 
+    def plot3d_ax(self, ax, elev=None, azim=None, ortho=False, path=None):
 
+        # Set the elevation and azimuth for the top-down view
+        if elev is not None and azim is not None:
+            ax.view_init(elev=elev, azim=azim)
 
+        # plot obstacles
+        for obstacle in self.obstacles:
+            obstacle.plot(ax, 'red')
 
+        if path is not None:
+            if path.valid:
+                path_points = np.array(path.path_points)
+                ax.plot(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
+
+                # plot path points in blue
+                ax.scatter(path_points[:, 0], path_points[:, 1], path_points[:, 2], color='blue')
+
+                # plot start and end point
+                ax.scatter(path.start[0], path.start[1], path.start[2], color='green')
+                ax.scatter(path.goal[0], path.goal[1], path.goal[2], color='green')
+
+        ax.set_aspect('equal', adjustable='box')
+
+        if ortho:
+            ax.set_proj_type('ortho')
+
+        ax.set_xlim(self.x_range)
+        ax.set_ylim(self.y_range)
+        ax.set_zlim(self.z_range)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
 
 
 class Node:
