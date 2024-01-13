@@ -10,11 +10,11 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     opti = ca.Opti()
 
     # State & Input weight matrix
-    Q = np.eye(3) * 0.6
+    Q = np.eye(3) * 4
     R = np.eye(num_inputs) * 0.001
 
-    Q_vel = np.eye(3) * 0.2
-    Q_angle = np.eye(3) * 0.4
+    Q_vel = np.eye(3) * 0.7
+    Q_angle = np.eye(3) * 0.05
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
