@@ -24,6 +24,18 @@ def return_pos_diff(state1, state2):
     diff = pos1 - pos2
     return diff
 
+def return_vel_difference(state1, state2):
+    v1 = state1[6:9]
+    v2 = state2[6:9]
+    diff = v1 - v2
+    return diff
+
+def return_ang_v_difference(state1, state2):
+    ang_v1 = state1[9:]
+    ang_v2 = state2[9:]
+    diff = ang_v1 - ang_v2
+    return diff
+
 def animate_trajectory(positions, dt, size = 0.5, obstacles=None):
     # Extract x, y, z coordinates and rotations
     x_positions, y_positions, z_positions, x_rot, y_rot, z_rot = positions

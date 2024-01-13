@@ -10,10 +10,11 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     opti = ca.Opti()
 
     # State & Input weight matrix
-    Q = np.eye(3) * 0.1
-    R = np.eye(num_inputs) * 0.0001
+    Q = np.eye(3) * 0.6
+    R = np.eye(num_inputs) * 0.001
 
-    Q_angle = np.eye(3) * 0.1
+    Q_vel = np.eye(3) * 0.2
+    Q_angle = np.eye(3) * 0.4
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
@@ -46,6 +47,10 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
         error = helper_functions.return_angle_difference(x_target, x[:, k])
         cost += ca.mtimes(error.T, Q_angle @ error)
 
+        #cost for velocity
+        error = helper_functions.return_vel_difference(x_target, x[:, k])
+        cost += ca.mtimes(error.T, Q_vel @ error)
+
         # Cost function
         error = helper_functions.return_pos_diff(x_target, x[:, k])
         cost += ca.mtimes(error.T, Q @ error) + ca.mtimes(u[:, k].T, R @ u[:, k])
@@ -54,6 +59,10 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     opti.subject_to([x[:, 0] == x_init])
 
     # Cost last state
+    error = helper_functions.return_vel_difference(x_target, x[:, N])
+    cost += ca.mtimes(error.T, Q_vel @ error)
+    error = helper_functions.return_angle_difference(x_target, x[:, N])
+    cost += ca.mtimes(error.T, Q_angle @ error)
     error = helper_functions.return_pos_diff(x_target, x[:, N])
     cost += ca.mtimes(error.T, Q @ error)
 
