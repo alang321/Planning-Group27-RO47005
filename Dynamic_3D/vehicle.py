@@ -151,4 +151,8 @@ class Quadrotor:
 
         return x_next
 
-
+    def get_v_dot(self, x, u):
+        R = self.return_rotation_matrix(x)
+        F = self.return_F(u)
+        v_dot = ca.vertcat(0, 0, 1) * self.gravity + ca.mtimes(R, F) * (1 / self.mass)
+        return v_dot

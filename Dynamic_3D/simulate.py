@@ -43,7 +43,12 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt
 
         # Used input is the first input
         u_real[:, t] = u_out
-        targets[:, t] = target_state 
+        targets[:, t] = target_state
+
+        #check if goal is reached
+        if np.linalg.norm(x_real[0:3, t+1] - x_target[0:3]) < 1:
+            print("Goal reached")
+            break
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Average Computation time per step: {elapsed_time/len(timesteps)} seconds ")
