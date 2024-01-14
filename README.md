@@ -18,7 +18,7 @@ python.exe -m pip install --upgrade pip
 pip install --no-cache-dir -r .\requirements.txt
 ```
 
-4. Open the project in jupyter notebook
+4. Open the project in jupyter notebook (and run all)
 ```
 jupyter notebook DynamicObstacleMPC_RRT.ipynb
 ```
