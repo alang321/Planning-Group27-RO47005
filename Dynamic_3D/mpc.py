@@ -11,10 +11,10 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
 
     # State & Input weight matrix
     Q = np.diag([5, 5, 5])
-    R = np.eye(num_inputs) * 0.008
+    R = np.eye(num_inputs) * 0.0001
 
     Q_vel = np.diag([1.1, 1.1, 1.55])  # change weight for vert vel
-    Q_angle = np.diag([0.01, 0.01, 0.0])  # change weight for z angle
+    Q_angle = np.diag([0.1, 0.1, 0.0])  # change weight for z angle
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
