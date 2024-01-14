@@ -12,8 +12,8 @@ cd Planning-Group27-RO47005
 
 3. Setup a virtual environment and install dependencies
 ```
-py venv -v venv venv
-venv/Scripts/activate
+py -m venv venv
+venv\Scripts\activate
 python.exe -m pip install --upgrade pip
 pip install --no-cache-dir -r .\requirements.txt
 ```
