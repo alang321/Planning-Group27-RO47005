@@ -99,16 +99,16 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True,
     if plot:
         world_3d.plot2d_ax(plt.gca())
 
-        plt.xlabel('X-axis')
-        plt.ylabel('Y-axis')
+        plt.xlabel('Y-axis')
+        plt.ylabel('X-axis')
 
         # plot the many paths
 
         for node in nodes:
             if node.parent is not None:
                 path_points = np.array([node.position, node.parent.position])
-                plt.plot(path_points[:, 0], path_points[:, 1], color='grey', zorder=5, linestyle='--', linewidth=.8)
-                plt.scatter(node.position[0], node.position[1], color='grey', s=5, zorder=10)
+                plt.plot(path_points[:, 1], path_points[:, 0], color='grey', zorder=5, linestyle='--', linewidth=.8)
+                plt.scatter(node.position[1], node.position[0], color='grey', s=5, zorder=10)
 
         # plot the goal path
         current = goal_node
@@ -116,12 +116,12 @@ def rrt_star(world_3d, start, goal, radius, max_iter=1000, report_progress=True,
             if current.parent is None:
                 break
             path_points = np.array([current.position, current.parent.position])
-            plt.plot(path_points[:, 0], path_points[:, 1], color='red', zorder=20, linewidth=1.5)
-            plt.scatter(current.position[0], current.position[1], color='red', zorder=30, s=10)
+            plt.plot(path_points[:, 1], path_points[:, 0], color='red', zorder=20, linewidth=1.5)
+            plt.scatter(current.position[1], current.position[0], color='red', zorder=30, s=10)
             current = current.parent
 
-        plt.scatter(start[0], start[1], color='red', zorder=40, s=50, marker='x', label='Start')
-        plt.scatter(goal[0], goal[1], color='red', zorder=40, s=70, marker='*', label='Goal')
+        plt.scatter(start[1], start[0], color='red', zorder=40, s=50, marker='x', label='Start')
+        plt.scatter(goal[1], goal[0], color='red', zorder=40, s=70, marker='*', label='Goal')
 
         # legend = plt.legend()
 

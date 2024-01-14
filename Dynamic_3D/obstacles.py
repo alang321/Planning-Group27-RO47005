@@ -62,7 +62,7 @@ class CylinderVertical:
         x_circ = self.x + self.radius * np.cos(theta)
         y_circ = self.y + self.radius * np.sin(theta)
 
-        ax.plot(x_circ, y_circ, color=color)
+        ax.plot(y_circ, x_circ, color=color)
         return ax
 
     def plot(self, ax, color):
