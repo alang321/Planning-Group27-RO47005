@@ -46,9 +46,9 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt
         targets[:, t] = target_state
 
         #check if goal is reached
-        if np.linalg.norm(x_real[0:3, t+1] - x_target[0:3]) < 1:
-            print("Goal reached")
-            break
+        #if np.linalg.norm(x_real[0:3, t+1] - x_target[0:3]) < .5:
+        #    print("Goal reached")
+        #    break
 
     x_real = x_real[:, 0:t+1]
     u_real = u_real[:, 0:t]

@@ -16,21 +16,26 @@ def init_obstacles(V_obstacles, V_move_obstacles, H_obstacles, H_move_obstacles,
         obstacles.append(CylinderHorizontal(H_obstacle[0], H_obstacle[1], H_obstacle[2], static_cost))
 
     for V_move_obstacle in V_move_obstacles:
-        obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4], color='cyan'))
+        obstacles.append(CylinderVertical(V_move_obstacle[0], V_move_obstacle[1], V_move_obstacle[4], dynamic_cost, V_move_obstacle[2:4], V_move_obstacle[5], color='cyan'))
 
     for H_move_obstacle in H_move_obstacles:
-        obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4], color='cyan'))
+        obstacles.append(CylinderHorizontal(H_move_obstacle[0], H_move_obstacle[1], H_move_obstacle[4], dynamic_cost, H_move_obstacle[2:4], H_move_obstacle[5], color='cyan'))
 
     return obstacles
 
 class CylinderVertical:
-    def __init__(self, x, y, radius, extra_cost, velocity=None, color='grey'):
+    def __init__(self, x, y, radius, extra_cost, velocity=None, move_distance=None, color='grey'):
         self.x = x
         self.y = y
         self.radius = radius
         self.velocity = velocity
         self.extra_cost = extra_cost
         self.color = color
+
+        # back and forth movement
+        self.move_distace = move_distance
+        self.travelled_distance = 0
+        self.current_direction = 1
 
         self.world = None
 
@@ -45,8 +50,17 @@ class CylinderVertical:
 
     def update(self, dt):
         if self.velocity is not None:
-            self.x += self.velocity[0] * dt
-            self.y += self.velocity[1] * dt
+            self.x += self.velocity[0] * dt * self.current_direction
+            self.y += self.velocity[1] * dt * self.current_direction
+
+            if self.move_distace is not None:
+                distance = np.linalg.norm(self.velocity) * dt
+                self.travelled_distance += distance * self.current_direction
+                if self.travelled_distance >= self.move_distace:
+                    self.current_direction = -1
+
+                if self.travelled_distance <= 0:
+                    self.current_direction = 1
 
     def plot_circle_xy(self, ax, x, y, z, radius):
         color = self.color
@@ -66,6 +80,10 @@ class CylinderVertical:
 
         ax.add_patch(circle)
         ax.add_patch(circle2)
+
+        #draw an arrow to indicate the direction of movement
+        if self.velocity is not None:
+            ax.arrow(self.y, self.x, self.velocity[1] * self.current_direction, self.velocity[0] * self.current_direction, color='black', head_width=0.5, head_length=0.5)
 
         return ax
 
@@ -110,13 +128,18 @@ class CylinderVertical:
 
 
 class CylinderHorizontal:
-    def __init__(self, y, z, radius, extra_cost, velocity=None, color='grey'):
+    def __init__(self, y, z, radius, extra_cost, velocity=None, move_distance=None, color='grey'):
         self.y = y
         self.z = z
         self.radius = radius
         self.velocity = velocity
         self.extra_cost = extra_cost
         self.color = color
+
+        # back and forth movement
+        self.move_distace = move_distance
+        self.travelled_distance = 0
+        self.current_direction = 1
 
         self.world = None
 
@@ -131,8 +154,17 @@ class CylinderHorizontal:
 
     def update(self, dt):
         if self.velocity is not None:
-            self.y += self.velocity[0] * dt
-            self.z += self.velocity[1] * dt
+            self.y += self.velocity[0] * dt * self.current_direction
+            self.z += self.velocity[1] * dt * self.current_direction
+
+            if self.move_distace is not None:
+                distance = np.linalg.norm(self.velocity) * dt
+                self.travelled_distance += distance * self.current_direction
+                if self.travelled_distance >= self.move_distace:
+                    self.current_direction = -1
+
+                if self.travelled_distance <= 0:
+                    self.current_direction = 1
 
     def plot_circle_yz(self, ax, x, y, z, radius):
         color = self.color
@@ -144,7 +176,6 @@ class CylinderHorizontal:
         x = np.ones(y_circ.shape) * x
 
         ax.plot(x, y_circ, z_circ, color=color)
-
         return ax
 
     def plot_xy(self, ax):
@@ -162,6 +193,11 @@ class CylinderHorizontal:
 
         ax.add_patch(circle)
         ax.add_patch(circle2)
+
+
+        if self.velocity is not None:
+            ax.arrow(self.y, self.z, self.velocity[0] * self.current_direction, self.velocity[1] * self.current_direction, color='black', head_width=0.5, head_length=0.5)
+
 
         return ax
 

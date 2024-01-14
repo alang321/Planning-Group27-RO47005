@@ -156,18 +156,18 @@ class World_3D:
         return pos_x >= self.x_range[0] and pos_x <= self.x_range[1] and pos_y >= self.y_range[0] and pos_y <= self.y_range[1]
 
 
-    def plot3d(self, path=None, elev=None, azim=None, ortho=False):
+    def plot3d(self, path=None, elev=None, azim=None, ortho=False, plot_moving_obstacles=False):
         # plot the 3d cylinder obstacles and the path from the top side and front
         # x = 0, y = 1, z = 2
         # for direction in range(3):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        self.plot3d_ax(ax, elev, azim, ortho, path)
+        self.plot3d_ax(ax, elev, azim, ortho, path, plot_moving_obstacles)
 
         plt.show()
 
-    def plot3d_ax(self, ax, elev=None, azim=None, ortho=False, path=None):
+    def plot3d_ax(self, ax, elev=None, azim=None, ortho=False, path=None, plot_moving_obstacles=False):
 
         # Set the elevation and azimuth for the top-down view
         if elev is not None and azim is not None:
@@ -175,7 +175,10 @@ class World_3D:
 
         # plot obstacles
         for obstacle in self.obstacles:
-            obstacle.plot(ax)
+            if obstacle.velocity is None:
+                obstacle.plot(ax)
+            elif plot_moving_obstacles:
+                obstacle.plot(ax)
 
         if path is not None:
             if path.valid:
@@ -201,15 +204,17 @@ class World_3D:
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
 
-    def plot2d_xy(self, path=None, states=None):
-        self.plot2d_xy_ax(plt.gca(), path, states)
+    def plot2d_xy(self, path=None, states=None, plot_moving_obstacles=False):
+        self.plot2d_xy_ax(plt.gca(), path, states, plot_moving_obstacles)
         plt.show()
 
-    def plot2d_xy_ax(self, ax, path=None, states=None):
+    def plot2d_xy_ax(self, ax, path=None, states=None, plot_moving_obstacles=False):
         # plot obstacles
         for obstacle in self.obstacles:
-            print()
-            obstacle.plot_xy(ax)
+            if obstacle.velocity is None:
+                obstacle.plot_xy(ax)
+            elif plot_moving_obstacles:
+                obstacle.plot_xy(ax)
 
         # for move_obstacle in self.move_obstacles:
         #     move_obstacle.plot_xy(ax, 'red')
@@ -236,15 +241,17 @@ class World_3D:
         #equal axis scale
         ax.set_aspect('equal', adjustable='box')
 
-    def plot2d_yz(self, path=None, states=None):
-        self.plot2d_yz_ax(plt.gca(), path, states)
+    def plot2d_yz(self, path=None, states=None, plot_moving_obstacles=False):
+        self.plot2d_yz_ax(plt.gca(), path, states, plot_moving_obstacles)
         plt.show()
 
-    def plot2d_yz_ax(self, ax, path=None, states=None):
+    def plot2d_yz_ax(self, ax, path=None, states=None, plot_moving_obstacles=False):
         # plot obstacles
         for obstacle in self.obstacles:
-            print()
-            obstacle.plot_yz(ax)
+            if obstacle.velocity is None:
+                obstacle.plot_yz(ax)
+            elif plot_moving_obstacles:
+                obstacle.plot_yz(ax)
 
         # for move_obstacle in self.move_obstacles:
         #     move_obstacle.plot_xy(ax, 'red')
