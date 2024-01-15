@@ -91,7 +91,7 @@ def plot_control_effort(control_inputs, duration_sec, num_timesteps):
     plt.plot(time, control_input_4, label='Rotor 4')
     plt.title('Control Inputs Over Time')
     plt.xlabel('Time [s]')
-    plt.ylabel('Control Input [RPM]')
+    plt.ylabel('Control Input [rad/s]^2')
     plt.legend()
 
     # Plot Total Control Input
@@ -99,7 +99,7 @@ def plot_control_effort(control_inputs, duration_sec, num_timesteps):
     plt.plot(time, total_control_per_step, label='Total Control Input', color='red')
     plt.title('Total Control Input Over Time')
     plt.xlabel('Time [s]')
-    plt.ylabel('Total Control Input [RPM]')
+    plt.ylabel('Total Control Input [rad/s]^2')
     plt.legend()
 
     plt.tight_layout()
