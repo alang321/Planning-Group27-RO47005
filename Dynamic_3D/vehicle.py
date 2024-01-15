@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class vehicle_SS:
     def __init__(self, dt):
         # State space matrices
@@ -10,12 +11,12 @@ class vehicle_SS:
                               [0, 0, 0, 0, 0, 0],
                               [0, 0, 0, 0, 0, 0]])
 
-        self.B_c = np.matrix([[0,  0, 0], 
-                              [0,  0, 0],
-                              [0,  0, 0],
+        self.B_c = np.matrix([[0, 0, 0],
+                              [0, 0, 0],
+                              [0, 0, 0],
                               [dt, 0, 0],
                               [0, dt, 0],
-                              [0,  0, dt]])
+                              [0, 0, dt]])
 
         # self.C_c = np.matrix([[1, 0, 0, 0],
         #             [0, 1, 0, 0]])
@@ -31,10 +32,11 @@ class vehicle_SS:
     def CalculateNextStep(self, x, u):
         x_next = self.A.dot(x.T) + self.B.dot(u.T)
         return x_next
-    
+
 
 import numpy as np
 import casadi as ca
+
 
 class Quadrotor:
     def __init__(self, dt):
@@ -77,6 +79,7 @@ class Quadrotor:
         )
 
         return Rz @ Ry @ Rx
+
     # def euler_to_quaternion(self, phi, theta, psi):
     #     """
     #     Convert Euler angles to quaternion.
@@ -127,11 +130,10 @@ class Quadrotor:
     def calculate_next_step(self, x, u):
         R = self.return_rotation_matrix(x)
 
-        #TODO: fix or revert quaternion method
-        #quaternion method
+        # TODO: fix or revert quaternion method
+        # quaternion method
         # q = self.euler_to_quaternion(x[3], x[4], x[5])  # Convert Euler angles to quaternion
         # R = self.return_rotation_matrix(q)  # Convert quaternion to rotation matrix
-
 
         F = self.return_F(u)
         tau = self.return_tau(u)
@@ -151,4 +153,8 @@ class Quadrotor:
 
         return x_next
 
-
+    def get_v_dot(self, x, u):
+        R = self.return_rotation_matrix(x)
+        F = self.return_F(u)
+        v_dot = ca.vertcat(0, 0, 1) * self.gravity + ca.mtimes(R, F) * (1 / self.mass)
+        return v_dot
