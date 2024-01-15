@@ -1,11 +1,13 @@
 ## Windows Installation Instructions
-1. Clone the repository:
+Using CMD as Administrator:
+
+1. Clone the repository
 
 ```
 git clone https://github.com/alang321/Planning-Group27-RO47005.git
 ```
 
-2. Navigate to the directory
+2. Navigate to the directory 
 ```
 cd Planning-Group27-RO47005
 ```
@@ -24,7 +26,7 @@ jupyter notebook Dynamic_3D\DynamicObstacleMPC_RRT.ipynb
 ```
 
 ## Linux Installation Instructions
-1. Clone the repository:
+1. Clone the repository
 
 ```
 git clone https://github.com/alang321/Planning-Group27-RO47005.git
