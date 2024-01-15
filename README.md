@@ -20,7 +20,7 @@ pip install --no-cache-dir -r .\requirements.txt
 
 4. Open the project in jupyter notebook (and run all)
 ```
-jupyter notebook DynamicObstacleMPC_RRT.ipynb
+jupyter notebook Dynamic_3D\DynamicObstacleMPC_RRT.ipynb
 ```
 
 ## Linux Installation Instructions
@@ -45,5 +45,5 @@ pip install --no-cache-dir -r ./requirements.txt
 
 4. Open the project in jupyter notebook (and run all)
 ```
-jupyter notebook DynamicObstacleMPC_RRT.ipynb
+jupyter notebook Dynamic_3D\DynamicObstacleMPC_RRT.ipynb
 ```
