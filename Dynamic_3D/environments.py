@@ -45,7 +45,7 @@ class EnvironmentOriginal:
         # V_obstacles = [[10, 20, 4], [18, 30, 3]]
         self.V_obstacles = [[10, 30, 2], [17, 23, 3], [7, 20, 4], [14, 37, 3], [1, 28, 4]]
         self.V_move_obstacles = [[5, 30, 1, 0, 1.5, 8], [12, 45, 0, -1, 2, 30],
-                            [3, 15, 1, 0, 3, 8]]  # [center_x, center_y, vel_x, vel_y, radius]
+                            [6, 15, 1, 0, 3, 8]]  # [center_x, center_y, vel_x, vel_y, radius]
         # V_move_obstacles = []
         self.H_obstacles = [[10, 10, 3]]  # [center_y, center_z, radius]
         self.H_move_obstacles = []  # [center_y, center_z, vel_y, vel_z, radius]
