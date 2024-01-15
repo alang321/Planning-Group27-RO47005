@@ -1,16 +1,10 @@
 ## Installation
-1. Clone the repository:
-
-```
-git clone https://github.com/alang321/Planning-Group27-RO47005.git
-```
-
-2. Navigate to the directory
+1. Navigate to this directory
 ```
 cd Planning-Group27-RO47005
 ```
 
-3. Setup a virtual environment and install dependencies
+2. Setup a virtual environment and install dependencies
 ```
 py venv -v venv venv
 venv/Scripts/activate
@@ -18,7 +12,7 @@ python.exe -m pip install --upgrade pip
 pip install --no-cache-dir -r .\requirements.txt
 ```
 
-4. Open the project in jupyter notebook
+3. Open the project in jupyter notebook
 ```
 jupyter notebook DynamicObstacleMPC_RRT.ipynb
 ```
