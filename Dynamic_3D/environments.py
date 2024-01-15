@@ -81,17 +81,17 @@ class EnvironmentDynamicLasers:
         obstacle_range = [self.pos_constraints[2] + 15, self.pos_constraints[3] - 15]
         dist = obstacle_range[1] - obstacle_range[0]
 
-        radius = 1.2
+        radius = 1
         x_range = self.pos_constraints[1] - self.pos_constraints[0]
         z_range = self.pos_constraints[5] - self.pos_constraints[4]
 
-        obstacle_count = 15
+        obstacle_count = 13
         for i in range(obstacle_count):
             y_pos = obstacle_range[0] + i * dist / obstacle_count
             if i % 2 == 0:
-                self.V_move_obstacles.append([radius/2, y_pos, 1.5, 0, radius, x_range - radius]) # [center_x, center_y, vel_x, vel_y, radius, move_distance]
+                self.V_move_obstacles.append([radius/2, y_pos, 1.1, 0, radius, x_range - radius]) # [center_x, center_y, vel_x, vel_y, radius, move_distance]
             else:
-                self.H_move_obstacles.append([y_pos, radius/2, 0, 1.5, radius, z_range - radius]) # [center_y, center_z, vel_y, vel_z, radius, move_distance]
+                self.H_move_obstacles.append([y_pos, radius/2, 0, 1.1, radius, z_range - radius]) # [center_y, center_z, vel_y, vel_z, radius, move_distance]
 
         self.static_cost = static_cost
         self.dynamic_cost = dynamic_cost
@@ -121,7 +121,7 @@ class EnvironmentChimney:
         y_range = [self.pos_constraints[2], self.pos_constraints[3]]
         wall_locations = [25, 45, 65, 85]
 
-        wall_gap = 8
+        wall_gap = 10
 
         wall_thickness = 4
 
@@ -135,7 +135,7 @@ class EnvironmentChimney:
                 start_point = y_range[0] + wall_gap + wall_thickness/2 - wall_thickness
             else:
                 direction = -1
-                start_point = y_range[1] - wall_gap + wall_thickness/2 + wall_thickness
+                start_point = y_range[1] - wall_gap - wall_thickness/2 + wall_thickness
 
             y_pos = start_point
             while y_pos < y_range[1] and y_pos > y_range[0]:

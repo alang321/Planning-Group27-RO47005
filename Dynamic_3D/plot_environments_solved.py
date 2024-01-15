@@ -88,14 +88,31 @@ for idx, environment in enumerate(environments):
 
     ax = axes[idx]
 
+    # Run RRT* to find a path
+    path_rrt = rrt_star(World, x_init[:3], x_target_last[:3], radius=10, max_iter=1000)
+    path_rrt = path_rrt.get_subdivided_path(7)
+
+    # Run MPC
+    vehicle = Quadrotor(dt)
+    controller = lambda x_init, current_wp, last_input, last_plan: mpc_control(vehicle, N, x_init, current_wp,
+                                                                               pos_constraints, vel_constraints,
+                                                                               acc_constraints, ang_constraints,
+                                                                               max_rad_per_s, last_plan, obstacles)
+    states, inputs, plans, timesteps, target_state = simulate(dt, T, x_init, x_target_last, N, controller, World,
+                                                              path_rrt, waypoint_radius, num_states=12, num_inputs=4)
+
+    environment.reset()
+    obstacles = environment.obstacles
+    # Create Static World
+    World = World_3D([pos_constraints[0], pos_constraints[1]], [pos_constraints[2], pos_constraints[3]], [pos_constraints[4], pos_constraints[5]], obstacles, obstacle_margin=1)
 
     if idx == 0:
-        World.plot2d_xy_ax(ax, plot_moving_obstacles=True, start=x_init[:3], goal=x_target_last[:3], title="D")
+        World.plot2d_xy_ax(ax, path=path_rrt, plot_moving_obstacles=True, states=states, start=x_init[:3], goal=x_target_last[:3], title="D")
     elif idx == 1:
-        World.plot2d_xy_ax(ax, plot_moving_obstacles=True, start=x_init[:3], goal=x_target_last[:3], show_legend=False, title="A")
+        World.plot2d_xy_ax(ax, path=path_rrt, plot_moving_obstacles=True, states=states, start=x_init[:3], goal=x_target_last[:3], show_legend=False, title="A")
     elif idx == 2:
-        World.plot2d_xy_ax(ax, plot_moving_obstacles=True, start=x_init[:3], goal=x_target_last[:3], show_legend=False, title="B")
+        World.plot2d_xy_ax(ax, path=path_rrt, plot_moving_obstacles=True, states=states, start=x_init[:3], goal=x_target_last[:3], show_legend=False, title="B")
     elif idx == 3:
-        World.plot2d_yz_ax(ax, plot_moving_obstacles=True, start=x_init[:3], goal=x_target_last[:3], show_legend=False, title="C")
+        World.plot2d_yz_ax(ax, path=path_rrt, plot_moving_obstacles=True, states=states, start=x_init[:3], goal=x_target_last[:3], show_legend=False, title="C")
 
 plt.show()

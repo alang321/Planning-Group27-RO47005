@@ -44,6 +44,10 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt
         u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, last_input, last_plan)
         print(f"Progress: {t}/{len(timesteps)}, Waypoint: {waypoint_idx}/{len(path_rrt.path_points)}")
 
+        if x_all_out is None:
+            print("No solution found")
+            break
+
         last_plan = x_all_out
         last_input = u_out
 
