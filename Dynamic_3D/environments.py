@@ -32,7 +32,7 @@ class EnvironmentMaze:
         self.simulation_time = 80
 
     def reset(self):
-        self.start = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
+        self.obstacles = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
                                    self.dynamic_cost)
 
 
@@ -60,7 +60,7 @@ class EnvironmentOriginal:
         self.simulation_time = 25
 
     def reset(self):
-        self.start = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
+        self.obstacles = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
                                    self.dynamic_cost)
 
 
@@ -81,17 +81,17 @@ class EnvironmentDynamicLasers:
         obstacle_range = [self.pos_constraints[2] + 15, self.pos_constraints[3] - 15]
         dist = obstacle_range[1] - obstacle_range[0]
 
-        radius = 1.6
+        radius = 1.2
         x_range = self.pos_constraints[1] - self.pos_constraints[0]
         z_range = self.pos_constraints[5] - self.pos_constraints[4]
 
-        obstacle_count = 20
+        obstacle_count = 15
         for i in range(obstacle_count):
             y_pos = obstacle_range[0] + i * dist / obstacle_count
             if i % 2 == 0:
-                self.V_move_obstacles.append([radius/2, y_pos, 3, 0, radius, x_range - radius]) # [center_x, center_y, vel_x, vel_y, radius, move_distance]
+                self.V_move_obstacles.append([radius/2, y_pos, 1.5, 0, radius, x_range - radius]) # [center_x, center_y, vel_x, vel_y, radius, move_distance]
             else:
-                self.H_move_obstacles.append([y_pos, radius/2, 0, 3, radius, z_range - radius]) # [center_y, center_z, vel_y, vel_z, radius, move_distance]
+                self.H_move_obstacles.append([y_pos, radius/2, 0, 1.5, radius, z_range - radius]) # [center_y, center_z, vel_y, vel_z, radius, move_distance]
 
         self.static_cost = static_cost
         self.dynamic_cost = dynamic_cost
@@ -99,10 +99,10 @@ class EnvironmentDynamicLasers:
         self.obstacles = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
                                    self.dynamic_cost)
 
-        self.simulation_time = 25
+        self.simulation_time = 60
 
     def reset(self):
-        self.start = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
+        self.obstacles = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
                                    self.dynamic_cost)
 
 
@@ -158,5 +158,5 @@ class EnvironmentChimney:
         self.simulation_time = 80
 
     def reset(self):
-        self.start = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
+        self.obstacles = init_obstacles(self.V_obstacles, self.V_move_obstacles, self.H_obstacles, self.H_move_obstacles, self.static_cost,
                                    self.dynamic_cost)
