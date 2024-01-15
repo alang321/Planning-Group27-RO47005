@@ -10,11 +10,11 @@ def mpc_control(vehicle, N, x_init, x_target, pos_constraints, vel_constraints, 
     opti = ca.Opti()
 
     # State & Input weight matrix
-    Q = np.diag([5, 5, 5])
-    R = np.eye(num_inputs) * 0.0001
+    Q = np.eye(3) * 4
+    R = np.eye(num_inputs) * 0.001
 
-    Q_vel = np.diag([1.7, 1.7, 2.1])  # change weight for vert vel
-    Q_angle = np.diag([0.05, 0.05, 0.0])  # change weight for z angle
+    Q_vel = np.eye(3) * 0.7
+    Q_angle = np.eye(3) * 0.05
 
     # Define Variables
     x = opti.variable(num_states, N + 1)
@@ -133,5 +133,6 @@ def StaticObstacleConstraints(obstacles, x, k):
 
         cost += obstacle.get_cost(x, k)
     return constraints, cost
+
 
 
