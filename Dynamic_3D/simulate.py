@@ -22,6 +22,7 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt
                     path_rrt.path_points[waypoint_idx][2], 0, 0, 0, 0, 0, 0, 0, 0, 0]
     # target_state = x_target
     start_time = time.time()
+    finish_time = None
     for t in range(len(timesteps)):
 
         # Update Waypoint
@@ -35,10 +36,14 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt
 
         if waypoint_idx == len(path_rrt.path_points):
             target_state = x_target
+            if finish_time is None:
+                finish_time = t
+
         # Compute the control input (and apply it)
         world.update(dt)
         u_out, x_out, x_all_out = control_func(x_real[:, t], target_state, last_input, last_plan)
-        print(f"Progress: {t}/{len(timesteps)}")
+        print(f"Progress: {t}/{len(timesteps)}, Waypoint: {waypoint_idx}/{len(path_rrt.path_points)}")
+
         last_plan = x_all_out
         last_input = u_out
 
@@ -51,9 +56,10 @@ def simulate(dt, T, x_init, x_target, plan_length, control_func, world, path_rrt
         targets[:, t] = target_state
 
         # check if goal is reached
-        # if np.linalg.norm(x_real[0:3, t+1] - x_target[0:3]) < .5:
-        #    print("Goal reached")
-        #    break
+        if np.linalg.norm(x_real[0:3, t+1] - x_target[0:3]) < 3:
+
+           print("Goal reached, Time taken: ", t*dt, " seconds")
+           break
 
     x_real = x_real[:, 0:t + 1]
     u_real = u_real[:, 0:t]
