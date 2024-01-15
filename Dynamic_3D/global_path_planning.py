@@ -203,11 +203,11 @@ class World_3D:
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
 
-    def plot2d_xy(self, path=None, states=None, plot_moving_obstacles=False, show_legend=True):
-        self.plot2d_xy_ax(plt.gca(), path, states, plot_moving_obstacles, show_legend)
+    def plot2d_xy(self, path=None, states=None, plot_moving_obstacles=False, show_legend=True, start=None, goal=None, title=None):
+        self.plot2d_xy_ax(plt.gca(), path, states, plot_moving_obstacles, show_legend, start, goal, title)
         plt.show()
 
-    def plot2d_xy_ax(self, ax, path=None, states=None, plot_moving_obstacles=False, show_legend=True):
+    def plot2d_xy_ax(self, ax, path=None, states=None, plot_moving_obstacles=False, show_legend=True, start=None, goal=None, legend_location='upper left', title=None):
         # plot obstacles
         # sort obstacles by y position
         sorted_obstacles = sorted(self.obstacles, key=operator.attrgetter('z'))
@@ -221,13 +221,19 @@ class World_3D:
         #     move_obstacle.plot_xy(ax, 'red')
 
         if path is not None:
+            start = path.start
+            goal = path.goal
+
             if path.valid:
                 path_points = np.array(path.path_points)
                 ax.plot(path_points[:, 1], path_points[:, 0], color='blue', linestyle='--', label="RRT* Path")
                 ax.scatter(path_points[:-1, 1], path_points[:-1, 0], s=20, color='blue')
-                # plot start and end point
-                ax.scatter(path.start[1], path.start[0], color='green', label="Start")
-                ax.scatter(path.goal[1], path.goal[0], color='red', marker='x', s=50, label="Goal")
+
+        if start is not None:
+            ax.scatter(start[1], start[0], color='green', label="Start")
+        # plot start and end point
+        if goal is not None:
+            ax.scatter(goal[1], goal[0], color='red', marker='x', s=50, label="Goal")
 
         if states is not None:
             ax.plot(states[1], states[0], color='red', label="Trajectory")
@@ -238,16 +244,20 @@ class World_3D:
         ax.set_xlabel('Y')
         ax.set_ylabel('X')
         if show_legend:
-            ax.legend()
+            ax.legend(loc=legend_location)
 
         #equal axis scale
         ax.set_aspect('equal', adjustable='box')
 
-    def plot2d_xz(self, path=None, states=None, plot_moving_obstacles=False, show_legend=True):
-        self.plot2d_xz_ax(plt.gca(), path, states, plot_moving_obstacles, show_legend)
+        #set the title
+        if title is not None:
+            ax.set_title(title)
+
+    def plot2d_xz(self, path=None, states=None, plot_moving_obstacles=False, show_legend=True, start=None, goal=None, title=None):
+        self.plot2d_xz_ax(plt.gca(), path, states, plot_moving_obstacles, show_legend, start, goal, title)
         plt.show()
 
-    def plot2d_xz_ax(self, ax, path=None, states=None, plot_moving_obstacles=False, show_legend=True):
+    def plot2d_xz_ax(self, ax, path=None, states=None, plot_moving_obstacles=False, show_legend=True, start=None, goal=None, legend_location='upper left', title=None):
         # plot obstacles
 
         # sort obstacles by y position
@@ -262,13 +272,19 @@ class World_3D:
         #     move_obstacle.plot_xy(ax, 'red')
 
         if path is not None:
+            start = path.start
+            goal = path.goal
+
             if path.valid:
                 path_points = np.array(path.path_points)
                 ax.plot(path_points[:, 0], path_points[:, 2], color='blue', linestyle='--', label="RRT* Path")
                 ax.scatter(path_points[:-1, 0], path_points[:-1, 2], s=20, color='blue')
-                # plot start and end point
-                ax.scatter(path.start[0], path.start[2], color='green', label="Start")
-                ax.scatter(path.goal[0], path.goal[2], color='red', marker='x', s=50, label="Goal")
+
+        if start is not None:
+            ax.scatter(start[0], start[2], color='green', label="Start")
+        # plot start and end point
+        if goal is not None:
+            ax.scatter(goal[0], goal[2], color='red', marker='x', s=50, label="Goal")
 
         if states is not None:
             ax.plot(states[0], states[2], color='red', label="Trajectory")
@@ -279,7 +295,7 @@ class World_3D:
         ax.set_xlabel('X')
         ax.set_ylabel('Z')
         if show_legend:
-            ax.legend()
+            ax.legend(loc=legend_location)
 
         #flip x axis
         ax.invert_xaxis()
@@ -287,11 +303,15 @@ class World_3D:
         #equal axis scale
         ax.set_aspect('equal', adjustable='box')
 
-    def plot2d_yz(self, path=None, states=None, plot_moving_obstacles=False, show_legend=True):
-        self.plot2d_yz_ax(plt.gca(), path, states, plot_moving_obstacles, show_legend)
+        #set the title
+        if title is not None:
+            ax.set_title(title)
+
+    def plot2d_yz(self, path=None, states=None, plot_moving_obstacles=False, show_legend=True, start=None, goal=None, title=None):
+        self.plot2d_yz_ax(plt.gca(), path, states, plot_moving_obstacles, show_legend, start, goal, title)
         plt.show()
 
-    def plot2d_yz_ax(self, ax, path=None, states=None, plot_moving_obstacles=False, show_legend=True):
+    def plot2d_yz_ax(self, ax, path=None, states=None, plot_moving_obstacles=False, show_legend=True, start=None, goal=None, legend_location='upper left', title=None):
         # plot obstacles
         sorted_obstacles = sorted(self.obstacles, key=operator.attrgetter('x'))
         for obstacle in reversed(sorted_obstacles):
@@ -304,13 +324,19 @@ class World_3D:
         #     move_obstacle.plot_xy(ax, 'red')
 
         if path is not None:
+            start = path.start
+            goal = path.goal
+
             if path.valid:
                 path_points = np.array(path.path_points)
                 ax.plot(path_points[:, 1], path_points[:, 2], color='blue', linestyle='--', label="RRT* Path")
                 ax.scatter(path_points[:-1, 1], path_points[:-1, 2], s=20, color='blue')
-                # plot start and end point
-                ax.scatter(path.start[1], path.start[2], color='green', label="Start")
-                ax.scatter(path.goal[1], path.goal[2], color='red', marker='x', s=50, label="Goal")
+
+        if start is not None:
+            ax.scatter(start[1], start[2], color='green', label="Start")
+        # plot start and end point
+        if goal is not None:
+            ax.scatter(goal[1], goal[2], color='red', marker='x', s=50, label="Goal")
 
         if states is not None:
             ax.plot(states[1], states[2], color='red', label="Trajectory")
@@ -321,10 +347,15 @@ class World_3D:
         ax.set_xlabel('Y')
         ax.set_ylabel('Z')
         if show_legend:
-            ax.legend()
+            #locate the legend at the top left
+            ax.legend(loc=legend_location)
 
         # equal axis scale
         ax.set_aspect('equal', adjustable='box')
+
+        #set the title
+        if title is not None:
+            ax.set_title(title)
 
 
 class Node:
